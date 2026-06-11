@@ -1,0 +1,901 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Controle de Treinamentos</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --purple:#7F77DD;--purple-dark:#534AB7;--purple-light:#EEEDFE;--purple-text:#3C3489;
+  --green-bg:#EAF3DE;--green-text:#27500A;--amber-bg:#FAEEDA;--amber-text:#633806;
+  --red-bg:#FCEBEB;--red-text:#791F1F;--teal-bg:#E1F5EE;--teal-text:#085041;
+  --bg:#F8F8FA;--surface:#FFFFFF;--border:#E2E2EA;
+  --text:#1A1A2E;--text-muted:#6B6B8A;--text-hint:#9999B3;
+  --radius:8px;--radius-lg:12px;
+}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',system-ui,sans-serif;background:var(--bg);color:var(--text);font-size:14px;min-height:100vh}
+.login-wrap{min-height:100vh;display:flex;align-items:center;justify-content:center;background:#F4F4FF}
+.login-box{background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:36px;width:360px;max-width:95vw}
+.login-logo{text-align:center;margin-bottom:24px}
+.login-icon{width:48px;height:48px;background:var(--purple-light);border-radius:12px;display:flex;align-items:center;justify-content:center;margin:0 auto 10px;font-size:22px}
+.login-title{font-size:17px;font-weight:700}
+.login-sub{font-size:12px;color:var(--text-muted);margin-top:3px}
+.fgrp{margin-bottom:13px}
+.fgrp label{display:block;font-size:11px;font-weight:600;color:var(--text-muted);margin-bottom:5px;text-transform:uppercase;letter-spacing:.04em}
+.finput{width:100%;padding:10px 12px;border:1px solid var(--border);border-radius:var(--radius);font-size:14px;color:var(--text);background:var(--surface);font-family:inherit}
+.finput:focus{outline:none;border-color:var(--purple)}
+.login-btn{width:100%;padding:11px;background:var(--purple);color:#fff;border:none;border-radius:var(--radius);font-size:14px;font-weight:600;cursor:pointer;margin-top:6px}
+.login-btn:hover{background:var(--purple-dark)}
+.login-err{background:var(--red-bg);color:var(--red-text);border-radius:var(--radius);padding:8px 12px;font-size:12px;margin-bottom:12px;display:none}
+.demo-section{margin-top:18px;border-top:1px solid var(--border);padding-top:14px}
+.demo-title{font-size:10px;font-weight:700;color:var(--text-hint);text-transform:uppercase;letter-spacing:.06em;margin-bottom:8px}
+.demo-card{display:flex;align-items:center;gap:10px;padding:7px 10px;background:var(--bg);border-radius:var(--radius);margin-bottom:6px;cursor:pointer;border:1px solid transparent;transition:all .15s}
+.demo-card:hover{border-color:var(--purple);background:var(--purple-light)}
+.davatar{width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;flex-shrink:0}
+.dname{font-size:12px;font-weight:600}
+.dsub{font-size:11px;color:var(--text-muted)}
+.app{display:flex;height:100vh;overflow:hidden}
+.sidebar{width:218px;min-width:218px;background:var(--surface);border-right:1px solid var(--border);display:flex;flex-direction:column;overflow-y:auto}
+.slogo{padding:14px 16px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:10px}
+.slogo-icon{width:30px;height:30px;background:var(--purple-light);border-radius:7px;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:15px}
+.slogo-text{font-size:13px;font-weight:700;color:var(--purple-dark)}
+.slogo-sub{font-size:10px;color:var(--text-muted)}
+.upill{margin:8px 10px;background:var(--bg);border:1px solid var(--border);border-radius:var(--radius);padding:7px 9px;display:flex;align-items:center;gap:8px}
+.uav{width:26px;height:26px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:9px;font-weight:700;flex-shrink:0}
+.uname{font-size:11px;font-weight:600;flex:1}
+.urole{font-size:9px;padding:1px 5px;border-radius:999px;font-weight:600}
+.logout-btn{background:none;border:none;cursor:pointer;color:var(--text-hint);font-size:16px;padding:2px;line-height:1}
+.logout-btn:hover{color:var(--red-text)}
+.nav{padding:5px 0;flex:1}
+.nsec{font-size:9px;font-weight:700;color:var(--text-hint);text-transform:uppercase;letter-spacing:.08em;padding:10px 14px 4px}
+.nitem{display:flex;align-items:center;gap:9px;padding:8px 14px;cursor:pointer;color:var(--text-muted);font-size:12px;border-left:3px solid transparent;background:none;border-top:none;border-right:none;border-bottom:none;width:100%;text-align:left;transition:all .15s}
+.nitem:hover{background:#F4F4FF;color:var(--text)}
+.nitem.active{background:var(--purple-light);color:var(--purple-dark);font-weight:600;border-left-color:var(--purple)}
+.nitem svg{width:14px;height:14px;flex-shrink:0;stroke:currentColor;fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+.nbadge{margin-left:auto;background:var(--purple);color:#fff;font-size:9px;padding:1px 5px;border-radius:999px;font-weight:700}
+.nbadge-red{margin-left:auto;background:#E24B4A;color:#fff;font-size:9px;padding:1px 5px;border-radius:999px;font-weight:700}
+.ntag{background:var(--purple);color:#fff;font-size:8px;padding:1px 4px;border-radius:999px;margin-left:4px;font-weight:700}
+.main{flex:1;overflow-y:auto;background:var(--bg)}
+.topbar{background:var(--surface);border-bottom:1px solid var(--border);padding:11px 22px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:10}
+.ptitle{font-size:15px;font-weight:700;letter-spacing:-.3px}
+.tbright{display:flex;gap:7px;align-items:center}
+.btn{display:inline-flex;align-items:center;gap:5px;padding:6px 12px;border-radius:var(--radius);border:1px solid var(--border);background:var(--surface);color:var(--text);font-size:12px;cursor:pointer;font-weight:500;transition:all .15s;font-family:inherit}
+.btn:hover{background:var(--bg);border-color:var(--purple)}
+.btn-primary{background:var(--purple);color:#fff;border-color:var(--purple)}
+.btn-primary:hover{background:var(--purple-dark)}
+.btn-danger{background:var(--red-bg);color:var(--red-text);border-color:#F09595}
+.btn-danger:hover{background:#F7C1C1}
+.btn-success{background:var(--green-bg);color:var(--green-text);border-color:#C0DD97}
+.btn-success:hover{background:#C0DD97}
+.btn svg{width:13px;height:13px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+.content{padding:18px}
+.page{display:none}
+.page.active{display:block}
+.metrics{display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:10px;margin-bottom:16px}
+.metric{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-lg);padding:13px}
+.mval{font-size:22px;font-weight:800;color:var(--purple-dark);letter-spacing:-1px}
+.mlbl{font-size:11px;color:var(--text-muted);margin-top:2px}
+.card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-lg);padding:16px;margin-bottom:12px}
+.ctitle{font-size:12px;font-weight:700;margin-bottom:10px;display:flex;align-items:center;gap:7px}
+.ctitle svg{width:14px;height:14px;stroke:var(--purple);fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.prow{display:flex;align-items:center;gap:8px;padding:6px 0;border-bottom:1px solid var(--border)}
+.prow:last-child{border-bottom:none}
+.pname{flex:1;font-size:12px}
+.pbar{flex:2;height:5px;background:var(--bg);border-radius:999px;overflow:hidden}
+.pfill{height:100%;border-radius:999px;background:var(--purple)}
+.ppct{font-size:11px;color:var(--text-muted);min-width:30px;text-align:right;font-weight:600}
+.badge{display:inline-flex;align-items:center;padding:2px 7px;border-radius:999px;font-size:10px;font-weight:600}
+.b-green{background:var(--green-bg);color:var(--green-text)}
+.b-amber{background:var(--amber-bg);color:var(--amber-text)}
+.b-red{background:var(--red-bg);color:var(--red-text)}
+.b-purple{background:var(--purple-light);color:var(--purple-text)}
+.b-teal{background:var(--teal-bg);color:var(--teal-text)}
+.tblwrap{overflow-x:auto;border-radius:var(--radius-lg);border:1px solid var(--border)}
+table{width:100%;border-collapse:collapse;font-size:12px}
+thead{background:#F4F4FF}
+th{text-align:left;padding:8px 10px;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:var(--text-muted);border-bottom:1px solid var(--border);white-space:nowrap}
+td{padding:7px 10px;border-bottom:1px solid var(--border);vertical-align:middle}
+tbody tr:last-child td{border-bottom:none}
+tbody tr:hover td{background:#FAFAFE}
+.fbar{display:flex;gap:7px;margin-bottom:12px;flex-wrap:wrap;align-items:center}
+.fbar select{font-size:12px;padding:6px 9px;border-radius:var(--radius);border:1px solid var(--border);background:var(--surface);color:var(--text);cursor:pointer}
+.fbar select:focus{outline:none;border-color:var(--purple)}
+.frow{margin-bottom:11px}
+.frow label{display:block;font-size:10px;font-weight:700;color:var(--text-muted);margin-bottom:4px;text-transform:uppercase;letter-spacing:.04em}
+.frow input,.frow select,.frow textarea{width:100%;padding:7px 9px;border:1px solid var(--border);border-radius:var(--radius);font-size:13px;color:var(--text);background:var(--surface);font-family:inherit}
+.frow input:focus,.frow select:focus,.frow textarea:focus{outline:none;border-color:var(--purple)}
+.nbadge-html{padding:2px 6px;border-radius:999px;font-size:10px;font-weight:700}
+.na{background:var(--green-bg);color:var(--green-text)}
+.nb{background:var(--amber-bg);color:var(--amber-text)}
+.nc{background:var(--red-bg);color:var(--red-text)}
+.nn{background:var(--bg);color:var(--text-hint)}
+.chk-y{color:var(--green-text);font-weight:700;font-size:12px}
+.chk-n{color:#E24B4A;font-size:12px}
+.moverlay{position:fixed;inset:0;background:rgba(0,0,0,.4);z-index:100;display:flex;align-items:center;justify-content:center}
+.mbox{background:var(--surface);border-radius:var(--radius-lg);padding:22px;width:460px;max-width:95vw;max-height:88vh;overflow-y:auto}
+.mtitle{font-size:14px;font-weight:700;margin-bottom:14px;display:flex;align-items:center;justify-content:space-between}
+.mclose{background:none;border:none;cursor:pointer;font-size:16px;color:var(--text-muted);padding:2px}
+.mfooter{display:flex;gap:7px;justify-content:flex-end;margin-top:14px;padding-top:12px;border-top:1px solid var(--border)}
+.apcard{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-lg);padding:14px;margin-bottom:10px;display:flex;gap:12px;align-items:flex-start;border-left:3px solid var(--amber-text)}
+.apicon{width:32px;height:32px;border-radius:50%;background:var(--amber-bg);color:var(--amber-text);display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;flex-shrink:0}
+.aptitle{font-size:12px;font-weight:600;margin-bottom:3px}
+.apmeta{font-size:11px;color:var(--text-muted);margin-bottom:8px}
+.apacts{display:flex;gap:7px}
+.sitem{display:flex;gap:12px;padding:9px 0;border-bottom:1px solid var(--border);align-items:flex-start}
+.sitem:last-child{border-bottom:none}
+.sdot{width:8px;height:8px;border-radius:50%;background:var(--purple);margin-top:4px;flex-shrink:0}
+.sdate{font-size:11px;color:var(--text-muted);min-width:80px;font-weight:500}
+.sname{font-size:12px;font-weight:600}
+.ssub{font-size:11px;color:var(--text-muted);margin-top:1px}
+.readonly-note{background:var(--amber-bg);color:var(--amber-text);border-radius:var(--radius);padding:8px 12px;font-size:12px;margin-bottom:12px;font-weight:500}
+.toast{position:fixed;bottom:20px;right:20px;background:var(--purple-dark);color:#fff;padding:9px 15px;border-radius:var(--radius);font-size:12px;font-weight:500;opacity:0;transform:translateY(8px);transition:all .25s;z-index:999;pointer-events:none}
+.toast.show{opacity:1;transform:translateY(0)}
+.empty{text-align:center;padding:28px;color:var(--text-hint);font-size:12px}
+.inst-row{display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid var(--border)}
+.inst-row:last-child{border-bottom:none}
+.iav{width:34px;height:34px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;flex-shrink:0}
+.iname{font-size:12px;font-weight:600}
+.isub{font-size:11px;color:var(--text-muted);margin-top:1px}
+.alert-warn{border-left:3px solid #E24B4A;padding:10px 13px;background:#FFF8F8;border-radius:0 var(--radius) var(--radius) 0;margin-bottom:13px}
+.aw-title{font-size:12px;font-weight:700;color:#A32D2D;margin-bottom:3px}
+.aw-text{font-size:11px;color:#791F1F;line-height:1.5}
+</style>
+</head>
+<body>
+
+<!-- LOGIN -->
+<div id="login-screen">
+<div class="login-wrap">
+<div class="login-box">
+  <div class="login-logo">
+    <div class="login-icon"><svg viewBox="0 0 48 48" width="32" height="32" xmlns="http://www.w3.org/2000/svg"><polygon points="4,8 22,24 4,40" fill="#9C8E6E"/><polygon points="18,8 36,24 18,40" fill="#B8A98A" opacity="0.7"/><rect x="30" y="28" width="14" height="14" rx="3" fill="#9C8E6E"/></svg></div>
+    <div class="login-title">Controle de Treinamentos</div>
+    <div class="login-sub">Time de Qualidade</div>
+  </div>
+  <div class="login-err" id="login-err">Usuário ou senha incorretos.</div>
+  <div class="fgrp"><label>Usuário</label><input type="text" class="finput" id="lu" placeholder="seu.usuario" autocomplete="username"></div>
+  <div class="fgrp"><label>Senha</label><input type="password" class="finput" id="lp" placeholder="••••••••" autocomplete="current-password"></div>
+  <button class="login-btn" onclick="doLogin()">Entrar</button>
+
+</div>
+</div>
+</div>
+
+<!-- APP -->
+<div id="app-screen" style="display:none">
+<div class="app">
+<nav class="sidebar">
+  <div class="slogo">
+    <div class="slogo-icon"><svg viewBox="0 0 48 48" width="20" height="20" xmlns="http://www.w3.org/2000/svg"><polygon points="4,8 22,24 4,40" fill="#9C8E6E"/><polygon points="18,8 36,24 18,40" fill="#B8A98A" opacity="0.7"/><rect x="30" y="28" width="14" height="14" rx="3" fill="#9C8E6E"/></svg></div>
+    <div><div class="slogo-text">Treinamentos</div><div class="slogo-sub">Time de Qualidade</div></div>
+  </div>
+  <div class="upill">
+    <div class="uav" id="uav"></div>
+    <div><div class="uname" id="uname"></div><div class="urole" id="urole"></div></div>
+    <button class="logout-btn" onclick="doLogout()" title="Sair">✕</button>
+  </div>
+  <div class="nav">
+    <div class="nsec">Visão Geral</div>
+    <button class="nitem active" onclick="showPage('dashboard',this)">
+      <svg viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>
+      Dashboard
+    </button>
+    <button class="nitem" onclick="showPage('aprovacoes',this)" id="nav-aprov">
+      <svg viewBox="0 0 24 24"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>
+      Aprovações <span class="nbadge-red" id="badge-aprov" style="display:none">0</span>
+    </button>
+    <div class="nsec">Controle</div>
+    <button class="nitem" onclick="showPage('onboarding',this)">
+      <svg viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+      Onboarding
+    </button>
+    <button class="nitem" onclick="showPage('direcionados',this)">
+      <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/></svg>
+      Direcionados
+    </button>
+    <div class="nsec">Planejamento</div>
+    <button class="nitem" onclick="showPage('cronograma',this)">
+      <svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+      Cronograma
+    </button>
+    <button class="nitem" onclick="showPage('analistas',this)">
+      <svg viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+      Analistas
+    </button>
+    <button class="nitem" onclick="showPage('configuracoes',this);renderConfiguracoes()">
+      <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+      Configurações
+    </button>
+    <div id="nav-admin-wrap" style="display:none">
+      <div class="nsec">Administração</div>
+      <button class="nitem" onclick="showPage('usuarios',this)">
+        <svg viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><line x1="23" y1="11" x2="17" y2="11"/><line x1="20" y1="8" x2="20" y2="14"/></svg>
+        Usuários <span class="ntag">Gestão</span>
+      </button>
+    </div>
+  </div>
+</nav>
+
+<div class="main">
+
+<div id="p-dashboard" class="page active">
+  <div class="topbar"><div class="ptitle">Dashboard</div>
+    <div class="tbright"><button class="btn" onclick="exportCSV()"><svg viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>Exportar CSV</button></div>
+  </div>
+  <div class="content">
+    <div class="metrics" id="dash-metrics"></div>
+    <div class="grid2">
+      <div class="card"><div class="ctitle"><svg viewBox="0 0 24 24"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>Onboarding</div><div id="prog-onb"></div></div>
+      <div class="card"><div class="ctitle"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/></svg>Direcionados</div><div id="prog-dir"></div></div>
+    </div>
+    <div class="card"><div class="ctitle"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>Próximas sessões</div><div id="dash-sched"></div></div>
+  </div>
+</div>
+
+<div id="p-aprovacoes" class="page">
+  <div class="topbar"><div class="ptitle">Aprovações</div></div>
+  <div class="content">
+    <div id="aprov-gestao" style="display:none"><div id="aprov-list"></div></div>
+    <div id="aprov-instrutor" style="display:none">
+      <div class="readonly-note">⏳ Suas alterações aguardam aprovação da Gestão.</div>
+      <div id="minhas-pend"></div>
+    </div>
+  </div>
+</div>
+
+<div id="p-onboarding" class="page">
+  <div class="topbar"><div class="ptitle">Onboarding</div>
+    <div class="tbright">
+      <button class="btn btn-primary" onclick="openModalAddModOnb()"><svg viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>Novo módulo</button>
+    </div>
+  </div>
+  <div class="content">
+    <div class="fbar">
+      <select onchange="renderOnb()" id="fil-turno-onb"><option value="">Todos os turnos</option><option value="06h">06h às 15h</option><option value="14h">14h às 23h</option><option value="22h">22h às 06h</option></select>
+      <select onchange="renderOnb()" id="fil-mod-onb"><option value="">Todos os módulos</option></select>
+    </div>
+    <div class="tblwrap">
+      <table><thead><tr><th>Analista</th><th>Turno</th><th>Módulo</th><th>Data conclusão</th><th>Nota</th><th>Instrutor</th><th>Status</th><th>Ações</th></tr></thead>
+      <tbody id="onb-tbody"></tbody></table>
+    </div>
+  </div>
+</div>
+
+<div id="p-direcionados" class="page">
+  <div class="topbar"><div class="ptitle">Treinamentos Direcionados</div>
+    <div class="tbright">
+      <button class="btn btn-primary" onclick="openModalAddModDir()"><svg viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>Novo treinamento</button>
+    </div>
+  </div>
+  <div class="content">
+    <div class="fbar">
+      <select onchange="renderDir()" id="fil-turno-dir"><option value="">Todos os turnos</option><option value="06h">06h às 15h</option><option value="14h">14h às 23h</option><option value="22h">22h às 06h</option></select>
+    </div>
+    <div class="tblwrap">
+      <table><thead><tr><th>Analista</th><th>Turno</th><th>Treinamento</th><th>Data conclusão</th><th>Nota</th><th>Instrutor</th><th>Status</th><th>Ações</th></tr></thead>
+      <tbody id="dir-tbody"></tbody></table>
+    </div>
+  </div>
+</div>
+
+<div id="p-cronograma" class="page">
+  <div class="topbar"><div class="ptitle">Cronograma</div>
+    <div class="tbright"><button class="btn btn-primary" onclick="openModalSessao()"><svg viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>Nova sessão</button></div>
+  </div>
+  <div class="content">
+    <div class="tblwrap">
+      <table><thead><tr><th>Data</th><th>Dia</th><th>Início</th><th>Término</th><th>Treinamento</th><th>Instrutor</th><th>Status</th><th>Ações</th></tr></thead>
+      <tbody id="sched-tbody"></tbody></table>
+    </div>
+  </div>
+</div>
+
+<div id="p-analistas" class="page">
+  <div class="topbar"><div class="ptitle">Analistas</div>
+    <div class="tbright"><button class="btn btn-primary" onclick="openModalAnalista()"><svg viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>Adicionar</button></div>
+  </div>
+  <div class="content">
+    <div class="tblwrap">
+      <table><thead><tr><th>Nome</th><th>Turno</th><th>Onboarding</th><th>Direcionados</th><th>Ações</th></tr></thead>
+      <tbody id="analistas-tbody"></tbody></table>
+    </div>
+  </div>
+</div>
+
+<div id="p-usuarios" class="page">
+  <div class="topbar"><div class="ptitle">Usuários do sistema</div>
+    <div class="tbright"><button class="btn btn-primary" onclick="openModalUsuario()"><svg viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>Novo usuário</button></div>
+  </div>
+  <div class="content">
+    <div class="tblwrap">
+      <table><thead><tr><th>Nome</th><th>Usuário</th><th>Perfil</th><th>Senha</th><th>Ações</th></tr></thead>
+      <tbody id="usuarios-tbody"></tbody></table>
+    </div>
+  </div>
+<div id="p-configuracoes" class="page">
+  <div class="topbar"><div class="ptitle">Configurações</div></div>
+  <div class="content">
+    <div class="grid2">
+      <div>
+        <div class="card">
+          <div class="ctitle" style="justify-content:space-between">
+            <span>Instrutores</span>
+            <button class="btn btn-primary" style="padding:3px 9px;font-size:11px" onclick="addInstrutor()">+ Adicionar</button>
+          </div>
+          <div id="conf-instrutores"></div>
+        </div>
+        <div class="card">
+          <div class="ctitle" style="justify-content:space-between">
+            <span>Módulos de Onboarding</span>
+            <button class="btn btn-primary" style="padding:3px 9px;font-size:11px" onclick="openModalAddModOnb()">+ Adicionar</button>
+          </div>
+          <div id="conf-mods-onb"></div>
+        </div>
+      </div>
+      <div>
+        <div class="card">
+          <div class="ctitle" style="justify-content:space-between">
+            <span>Treinamentos Direcionados</span>
+            <button class="btn btn-primary" style="padding:3px 9px;font-size:11px" onclick="openModalAddModDir()">+ Adicionar</button>
+          </div>
+          <div id="conf-mods-dir"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+</div>
+</div>
+</div>
+
+<!-- MODAL -->
+<div id="moverlay" class="moverlay" style="display:none" onclick="closeMod(event)">
+  <div class="mbox" onclick="event.stopPropagation()">
+    <div class="mtitle"><span id="mtitle-text"></span><button class="mclose" onclick="closeMod()">✕</button></div>
+    <div id="mbody"></div>
+    <div class="mfooter" id="mfooter"></div>
+  </div>
+</div>
+<div class="toast" id="toast"></div>
+
+<script>
+const DEFSTATE={
+  users:[
+    {id:'u1',name:'Gestão',username:'gestao',password:'12345678',role:'gestao'},
+    {id:'u2',name:'Deiziane Silva',username:'deiziane',password:'12345678',role:'instrutor'},
+    {id:'u3',name:'Time R.A',username:'timera',password:'12345678',role:'instrutor'}
+  ],
+  analistas:[
+    {id:'a0',name:'Joyce Honorato S. Chirinian',turno:'06h às 15h'},
+    {id:'a1',name:'Ana Carolina de Oliveira',turno:'06h às 15h'},
+    {id:'a2',name:'Pedro Xavier F. Mangueira',turno:'06h às 15h'},
+    {id:'a3',name:'Henrique Franco da Paz',turno:'06h às 15h'},
+    {id:'a4',name:'Luiz Miranda',turno:'06h às 15h'},
+    {id:'a5',name:'Emerson Silva de Souza',turno:'14h às 23h'},
+    {id:'a6',name:'Guilherme L. Fogaça',turno:'14h às 23h'},
+    {id:'a7',name:'João Victor C. Correa',turno:'14h às 23h'},
+    {id:'a8',name:'Amanda Silveira Lemos',turno:'14h às 23h'},
+    {id:'a9',name:'Jose Roberto S. Junior',turno:'14h às 23h'},
+    {id:'a10',name:'Kayque Rosetto S. Mello',turno:'14h às 23h'},
+    {id:'a11',name:'Kerolayne F. E. Santo',turno:'14h às 23h'},
+    {id:'a12',name:'Gustavo Oliveira Ramos',turno:'14h às 23h'},
+    {id:'a13',name:'Cristiano C. P. Junior',turno:'14h às 23h'},
+    {id:'a14',name:'Vitor Hugo O. Cipriano',turno:'14h às 23h'},
+    {id:'a15',name:'Tiago Rodrigues Amaral',turno:'22h às 06h'},
+    {id:'a16',name:'Jonas Costa Ferreira',turno:'22h às 06h'},
+    {id:'a17',name:'Emanoel V. S. Nascimento',turno:'22h às 06h'},
+    {id:'a18',name:'Gabriel Gomes Pereira',turno:'22h às 06h'},
+    {id:'a19',name:'Robert da Silva Neves',turno:'22h às 06h'},
+    {id:'a20',name:'Victor H. S. Venceslau',turno:'22h às 06h'},
+    {id:'a21',name:'Manuela Arocha da Silva',turno:'06h às 15h'},
+    {id:'a22',name:'Tiago Santhiago de Souza',turno:'06h às 15h'},
+    {id:'a23',name:'Samira Diniz Martins',turno:'06h às 15h'},
+    {id:'a24',name:'Thiago Souza Lopes',turno:'06h às 15h'}
+  ],
+  mods_onb:['Onb. Operacional','Cultura Operacional','Introdução ao Igaming','Ferramentas','Jogo Responsável','Mercado Regulado','IT / Promoções','Encantamento ao Cliente','KCS','Taxonomia'],
+  mods_dir:['Bac Bo / Dragon Tiger','Baccarat Ao Vivo','Cassino Online','Cassino Roleta','Sportsbook','Blackjack','Game Shows'],
+  instrutores:['Deiziane Silva','Time R.A','Time Qualidade'],
+  regs_onb:[],regs_dir:[],
+  sessoes:[
+    {id:'s1',data:'2025-08-22',dia:'Qui',inicio:'15:00',termino:'16:00',treinamento:'Reciclagem',instrutor:'Deiziane Silva',status:'realizado'},
+    {id:'s2',data:'2025-10-15',dia:'Qua',inicio:'09:00',termino:'18:00',treinamento:'Game Shows e Roleta',instrutor:'Deiziane Silva',status:'agendado'},
+    {id:'s3',data:'2025-10-28',dia:'Ter',inicio:'09:00',termino:'18:00',treinamento:'Blackjack, Baccarat e Cassino Online',instrutor:'Deiziane Silva',status:'agendado'},
+    {id:'s4',data:'2025-11-03',dia:'Seg',inicio:'13:00',termino:'14:00',treinamento:'Onboarding Operacional',instrutor:'Deiziane Silva',status:'agendado'}
+  ],
+  pendentes:[],nextId:1000
+};
+
+function loadS(){try{const d=localStorage.getItem('treinv3');return d?JSON.parse(d):null}catch(e){return null}}
+function saveS(){localStorage.setItem('treinv3',JSON.stringify(S))}
+let S=loadS()||JSON.parse(JSON.stringify(DEFSTATE));
+let CU=null;
+
+function gid(){S.nextId=(S.nextId||1000)+1;return'x'+S.nextId;}
+
+// AUTH
+function doLogin(){
+  const u=document.getElementById('lu').value.trim();
+  const p=document.getElementById('lp').value;
+  const user=S.users.find(x=>x.username===u&&x.password===p);
+  if(!user){document.getElementById('login-err').style.display='block';return;}
+  startSess(user);
+}
+function quickLogin(u,p){document.getElementById('lu').value=u;document.getElementById('lp').value=p;doLogin();}
+function startSess(user){
+  CU=user;
+  document.getElementById('login-screen').style.display='none';
+  document.getElementById('app-screen').style.display='block';
+  document.getElementById('login-err').style.display='none';
+  const ini=user.name.split(' ').slice(0,2).map(x=>x[0]).join('');
+  const isG=user.role==='gestao';
+  const av=document.getElementById('uav');
+  av.textContent=ini;av.style.cssText=`width:26px;height:26px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:9px;font-weight:700;flex-shrink:0;background:${isG?'#EEEDFE':'#EAF3DE'};color:${isG?'#3C3489':'#27500A'}`;
+  document.getElementById('uname').textContent=user.name;
+  const rEl=document.getElementById('urole');rEl.textContent=isG?'Gestão':'Instrutor';rEl.className='urole '+(isG?'b-purple':'b-teal');
+  document.getElementById('nav-admin-wrap').style.display=isG?'block':'none';
+  buildModFil();renderAll();
+  showPage('dashboard',document.querySelector('.nitem'));
+}
+function doLogout(){CU=null;document.getElementById('app-screen').style.display='none';document.getElementById('login-screen').style.display='block';document.getElementById('lu').value='';document.getElementById('lp').value='';}
+document.getElementById('lp').addEventListener('keydown',e=>{if(e.key==='Enter')doLogin();});
+
+function isG(){return CU&&CU.role==='gestao';}
+
+// SUBMIT CHANGE
+function submitChange(type,payload,desc){
+  if(isG()){applyChange(type,payload);showToast('Salvo!');}
+  else{
+    S.pendentes.push({id:gid(),type,payload,desc,author:CU.name,ts:new Date().toLocaleString('pt-BR'),status:'pending'});
+    saveS();updBadge();showToast('Enviado para aprovação da Gestão.');
+  }
+}
+function applyChange(type,pl){
+  if(type==='add_onb')S.regs_onb.push(pl);
+  else if(type==='edit_onb'){const i=S.regs_onb.findIndex(r=>r.id===pl.id);if(i>=0)S.regs_onb[i]=pl;}
+  else if(type==='del_onb')S.regs_onb=S.regs_onb.filter(r=>r.id!==pl.id);
+  else if(type==='add_dir')S.regs_dir.push(pl);
+  else if(type==='edit_dir'){const i=S.regs_dir.findIndex(r=>r.id===pl.id);if(i>=0)S.regs_dir[i]=pl;}
+  else if(type==='del_dir')S.regs_dir=S.regs_dir.filter(r=>r.id!==pl.id);
+  else if(type==='add_sessao')S.sessoes.push(pl);
+  else if(type==='edit_sessao'){const i=S.sessoes.findIndex(r=>r.id===pl.id);if(i>=0)S.sessoes[i]=pl;}
+  else if(type==='del_sessao')S.sessoes=S.sessoes.filter(r=>r.id!==pl.id);
+  else if(type==='add_analista')S.analistas.push(pl);
+  else if(type==='del_analista')S.analistas=S.analistas.filter(r=>r.id!==pl.id);
+  else if(type==='add_mod_onb')S.mods_onb.push(pl.nome);
+  else if(type==='del_mod_onb')S.mods_onb=S.mods_onb.filter(m=>m!==pl.nome);
+  else if(type==='add_mod_dir')S.mods_dir.push(pl.nome);
+  else if(type==='del_mod_dir')S.mods_dir=S.mods_dir.filter(m=>m!==pl.nome);
+  saveS();renderAll();
+}
+function approveChange(id){
+  const p=S.pendentes.find(x=>x.id===id);if(!p)return;
+  applyChange(p.type,p.payload);
+  S.pendentes=S.pendentes.filter(x=>x.id!==id);
+  saveS();updBadge();renderAprov();showToast('Alteração aprovada!');
+}
+function rejectChange(id){
+  S.pendentes=S.pendentes.filter(x=>x.id!==id);
+  saveS();updBadge();renderAprov();showToast('Alteração recusada.');
+}
+function updBadge(){
+  const c=S.pendentes.filter(p=>p.status==='pending').length;
+  const b=document.getElementById('badge-aprov');
+  b.textContent=c;b.style.display=c>0?'':'none';
+}
+
+// RENDER ALL
+function renderAll(){renderDash();renderOnb();renderDir();renderSched();renderAnalistas();if(isG())renderUsuarios();renderAprov();updBadge();buildModFil();}
+
+// DASHBOARD
+function renderDash(){
+  const notes=S.regs_onb.filter(r=>r.nota).length+S.regs_dir.filter(r=>r.nota).length;
+  const pend=S.pendentes.length;
+  document.getElementById('dash-metrics').innerHTML=`
+    <div class="metric"><div class="mval">${S.analistas.length}</div><div class="mlbl">Analistas</div></div>
+    <div class="metric"><div class="mval">${S.mods_onb.length}</div><div class="mlbl">Módulos onboarding</div></div>
+    <div class="metric"><div class="mval">${S.mods_dir.length}</div><div class="mlbl">Treinamentos direcionados</div></div>
+    <div class="metric"><div class="mval">${notes}</div><div class="mlbl">Notas registradas</div></div>
+    ${isG()?`<div class="metric"><div class="mval" style="color:${pend>0?'#E24B4A':'var(--purple-dark)'}">${pend}</div><div class="mlbl">Aguardando aprovação</div></div>`:''}
+  `;
+  document.getElementById('prog-onb').innerHTML=S.mods_onb.map(m=>{
+    const pct=S.analistas.length?Math.round(S.regs_onb.filter(r=>r.modulo===m&&r.concluido).length/S.analistas.length*100):0;
+    return`<div class="prow"><span class="pname">${m}</span><div class="pbar"><div class="pfill" style="width:${pct}%"></div></div><span class="ppct">${pct}%</span></div>`;
+  }).join('')||'<div class="empty">Nenhum módulo.</div>';
+  document.getElementById('prog-dir').innerHTML=S.mods_dir.map(m=>{
+    const pct=S.analistas.length?Math.round(S.regs_dir.filter(r=>r.modulo===m&&r.concluido).length/S.analistas.length*100):0;
+    return`<div class="prow"><span class="pname">${m}</span><div class="pbar"><div class="pfill" style="width:${pct}%"></div></div><span class="ppct">${pct}%</span></div>`;
+  }).join('')||'<div class="empty">Nenhum treinamento.</div>';
+  const up=S.sessoes.filter(s=>s.status==='agendado').slice(0,4);
+  document.getElementById('dash-sched').innerHTML=up.length?up.map(s=>`
+    <div class="sitem"><div class="sdot"></div><div>
+    <div class="sdate">${fmtD(s.data)}</div>
+    <div class="sname">${s.treinamento}</div>
+    <div class="ssub">${s.instrutor} · ${s.inicio} às ${s.termino}</div>
+    </div></div>`).join(''):'<div class="empty">Nenhuma sessão agendada.</div>';
+}
+function fmtD(d){if(!d)return'—';const[y,m,dd]=d.split('-');return`${dd}/${m}/${y}`;}
+
+// ONBOARDING
+function buildModFil(){
+  const s=document.getElementById('fil-mod-onb');if(!s)return;
+  const c=s.value;
+  s.innerHTML='<option value="">Todos os módulos</option>'+S.mods_onb.map(m=>`<option value="${m}"${m===c?' selected':''}>${m}</option>`).join('');
+}
+function renderOnb(){
+  const turno=document.getElementById('fil-turno-onb')?.value||'';
+  const mod=document.getElementById('fil-mod-onb')?.value||'';
+  const rows=[];
+  S.analistas.filter(a=>!turno||a.turno.startsWith(turno)).forEach(a=>{
+    S.mods_onb.filter(m=>!mod||m===mod).forEach(m=>{
+      const reg=S.regs_onb.find(r=>r.analistaId===a.id&&r.modulo===m)||{};
+      rows.push({a,m,reg});
+    });
+  });
+  document.getElementById('onb-tbody').innerHTML=rows.length?rows.map(({a,m,reg})=>`
+    <tr>
+      <td style="font-weight:500">${a.name}</td>
+      <td><span style="font-size:10px;color:var(--text-muted)">${a.turno.split(' ')[0]}</span></td>
+      <td>${m}</td><td>${reg.date||'—'}</td>
+      <td>${notaHtml(reg.nota)}</td><td>${reg.instrutor||'—'}</td>
+      <td>${reg.concluido?'<span class="chk-y">✓ Concluído</span>':'<span class="chk-n">✗ Pendente</span>'}</td>
+      <td style="white-space:nowrap">
+        <button class="btn" style="padding:3px 7px;font-size:10px" onclick="openEditOnb('${a.id}','${m}')">Editar</button>
+        ${reg.id?`<button class="btn btn-danger" style="padding:3px 7px;font-size:10px;margin-left:3px" onclick="delOnb('${reg.id}')">Remover</button>`:''}
+      </td>
+    </tr>`).join(''):'<tr><td colspan="8" class="empty">Nenhum registro.</td></tr>';
+}
+function openModalAddModOnb(){
+  openMod('Novo módulo de onboarding',`<div class="frow"><label>Nome do módulo</label><input type="text" id="f-mod" placeholder="Ex: Atendimento ao Cliente"></div>`,
+  [{l:'Cancelar',c:'btn',f:'closeMod()'},{l:'Adicionar',c:'btn btn-primary',f:'addModOnb()'}]);
+}
+function addModOnb(){const n=document.getElementById('f-mod').value.trim();if(!n)return;submitChange('add_mod_onb',{nome:n},`Adicionar módulo: "${n}"`);closeMod();}
+function openEditOnb(aid,mod){
+  const a=S.analistas.find(x=>x.id===aid);
+  const reg=S.regs_onb.find(r=>r.analistaId===aid&&r.modulo===mod)||{};
+  openMod(`${a.name} — ${mod}`,`
+    <div class="frow"><label>Data de conclusão</label><input type="date" id="f-date" value="${reg.date||''}"></div>
+    <div class="frow"><label>Nota (0–10)</label><input type="number" id="f-nota" min="0" max="10" step="0.1" value="${reg.nota||''}" placeholder="0–10"></div>
+    <div class="frow"><label>Instrutor</label><select id="f-inst">${S.instrutores.map(i=>`<option${reg.instrutor===i?' selected':''}>${i}</option>`).join('')}</select></div>
+    <div class="frow"><label>Concluído?</label><select id="f-conc"><option value="0"${!reg.concluido?' selected':''}>Não</option><option value="1"${reg.concluido?' selected':''}>Sim</option></select></div>`,
+  [{l:'Cancelar',c:'btn',f:'closeMod()'},{l:'Salvar',c:'btn btn-primary',f:`saveEditOnb('${aid}','${mod}','${reg.id||''}')`}]);
+}
+function saveEditOnb(aid,mod,rid){
+  const pl={id:rid||gid(),analistaId:aid,modulo:mod,date:document.getElementById('f-date').value,nota:document.getElementById('f-nota').value,instrutor:document.getElementById('f-inst').value,concluido:parseInt(document.getElementById('f-conc').value)};
+  const a=S.analistas.find(x=>x.id===aid);
+  submitChange(rid?'edit_onb':'add_onb',pl,`${rid?'Editar':'Registrar'} onboarding: ${a?.name} / ${mod}`);closeMod();
+}
+function delOnb(id){if(!confirm('Remover registro?'))return;submitChange('del_onb',{id},`Remover registro onboarding`);}
+
+// DIRECIONADOS
+function renderDir(){
+  const turno=document.getElementById('fil-turno-dir')?.value||'';
+  const rows=[];
+  S.analistas.filter(a=>!turno||a.turno.startsWith(turno)).forEach(a=>{
+    S.mods_dir.forEach(m=>{
+      const reg=S.regs_dir.find(r=>r.analistaId===a.id&&r.modulo===m)||{};
+      rows.push({a,m,reg});
+    });
+  });
+  document.getElementById('dir-tbody').innerHTML=rows.length?rows.map(({a,m,reg})=>`
+    <tr>
+      <td style="font-weight:500">${a.name}</td>
+      <td><span style="font-size:10px;color:var(--text-muted)">${a.turno.split(' ')[0]}</span></td>
+      <td>${m}</td><td>${reg.date||'—'}</td>
+      <td>${notaHtml(reg.nota)}</td><td>${reg.instrutor||'—'}</td>
+      <td>${reg.concluido?'<span class="chk-y">✓ Concluído</span>':'<span class="chk-n">✗ Pendente</span>'}</td>
+      <td style="white-space:nowrap">
+        <button class="btn" style="padding:3px 7px;font-size:10px" onclick="openEditDir('${a.id}','${m}')">Editar</button>
+        ${reg.id?`<button class="btn btn-danger" style="padding:3px 7px;font-size:10px;margin-left:3px" onclick="delDir('${reg.id}')">Remover</button>`:''}
+      </td>
+    </tr>`).join(''):'<tr><td colspan="8" class="empty">Nenhum registro.</td></tr>';
+}
+function openModalAddModDir(){
+  openMod('Novo treinamento direcionado',`<div class="frow"><label>Nome do treinamento</label><input type="text" id="f-mod" placeholder="Ex: Roleta Ao Vivo"></div>`,
+  [{l:'Cancelar',c:'btn',f:'closeMod()'},{l:'Adicionar',c:'btn btn-primary',f:'addModDir()'}]);
+}
+function addModDir(){const n=document.getElementById('f-mod').value.trim();if(!n)return;submitChange('add_mod_dir',{nome:n},`Adicionar treinamento: "${n}"`);closeMod();}
+function openEditDir(aid,mod){
+  const a=S.analistas.find(x=>x.id===aid);
+  const reg=S.regs_dir.find(r=>r.analistaId===aid&&r.modulo===mod)||{};
+  openMod(`${a.name} — ${mod}`,`
+    <div class="frow"><label>Data de conclusão</label><input type="date" id="f-date" value="${reg.date||''}"></div>
+    <div class="frow"><label>Nota (0–10)</label><input type="number" id="f-nota" min="0" max="10" step="0.1" value="${reg.nota||''}" placeholder="0–10"></div>
+    <div class="frow"><label>Instrutor</label><select id="f-inst">${S.instrutores.map(i=>`<option${reg.instrutor===i?' selected':''}>${i}</option>`).join('')}</select></div>
+    <div class="frow"><label>Concluído?</label><select id="f-conc"><option value="0"${!reg.concluido?' selected':''}>Não</option><option value="1"${reg.concluido?' selected':''}>Sim</option></select></div>`,
+  [{l:'Cancelar',c:'btn',f:'closeMod()'},{l:'Salvar',c:'btn btn-primary',f:`saveEditDir('${aid}','${mod}','${reg.id||''}')`}]);
+}
+function saveEditDir(aid,mod,rid){
+  const pl={id:rid||gid(),analistaId:aid,modulo:mod,date:document.getElementById('f-date').value,nota:document.getElementById('f-nota').value,instrutor:document.getElementById('f-inst').value,concluido:parseInt(document.getElementById('f-conc').value)};
+  const a=S.analistas.find(x=>x.id===aid);
+  submitChange(rid?'edit_dir':'add_dir',pl,`${rid?'Editar':'Registrar'} direcionado: ${a?.name} / ${mod}`);closeMod();
+}
+function delDir(id){if(!confirm('Remover registro?'))return;submitChange('del_dir',{id},`Remover registro direcionado`);}
+
+// CRONOGRAMA
+function renderSched(){
+  const rows=[...S.sessoes].sort((a,b)=>a.data.localeCompare(b.data));
+  document.getElementById('sched-tbody').innerHTML=rows.length?rows.map(s=>`
+    <tr>
+      <td>${fmtD(s.data)}</td><td>${s.dia}</td><td>${s.inicio}</td><td>${s.termino}</td>
+      <td style="font-weight:500">${s.treinamento}</td><td>${s.instrutor}</td>
+      <td>${s.status==='agendado'?'<span class="badge b-amber">Agendado</span>':'<span class="badge b-green">Realizado</span>'}</td>
+      <td style="white-space:nowrap">
+        <button class="btn" style="padding:3px 7px;font-size:10px" onclick="openEditSessao('${s.id}')">Editar</button>
+        <button class="btn btn-danger" style="padding:3px 7px;font-size:10px;margin-left:3px" onclick="delSessao('${s.id}')">Remover</button>
+      </td>
+    </tr>`).join(''):'<tr><td colspan="8" class="empty">Nenhuma sessão.</td></tr>';
+}
+function openModalSessao(s){
+  s=s||{};
+  openMod(s.id?'Editar sessão':'Nova sessão',`
+    <div class="frow"><label>Data</label><input type="date" id="f-data" value="${s.data||''}"></div>
+    <div class="frow"><label>Dia da semana</label><input type="text" id="f-dia" placeholder="Seg, Ter..." value="${s.dia||''}"></div>
+    <div class="frow"><label>Início</label><input type="text" id="f-ini" placeholder="09:00" value="${s.inicio||''}"></div>
+    <div class="frow"><label>Término</label><input type="text" id="f-fim" placeholder="10:00" value="${s.termino||''}"></div>
+    <div class="frow"><label>Treinamento</label><input type="text" id="f-trei" value="${s.treinamento||''}"></div>
+    <div class="frow"><label>Instrutor</label><select id="f-inst">${S.instrutores.map(i=>`<option${s.instrutor===i?' selected':''}>${i}</option>`).join('')}</select></div>
+    <div class="frow"><label>Status</label><select id="f-stat"><option value="agendado"${s.status==='agendado'?' selected':''}>Agendado</option><option value="realizado"${s.status==='realizado'?' selected':''}>Realizado</option></select></div>`,
+  [{l:'Cancelar',c:'btn',f:'closeMod()'},{l:'Salvar',c:'btn btn-primary',f:`saveSessao('${s.id||''}')`}]);
+}
+function openEditSessao(id){openModalSessao(S.sessoes.find(s=>s.id===id));}
+function saveSessao(id){
+  const pl={id:id||gid(),data:document.getElementById('f-data').value,dia:document.getElementById('f-dia').value,inicio:document.getElementById('f-ini').value,termino:document.getElementById('f-fim').value,treinamento:document.getElementById('f-trei').value,instrutor:document.getElementById('f-inst').value,status:document.getElementById('f-stat').value};
+  submitChange(id?'edit_sessao':'add_sessao',pl,`${id?'Editar':'Nova'} sessão: ${pl.treinamento}`);closeMod();
+}
+function delSessao(id){if(!confirm('Remover sessão?'))return;submitChange('del_sessao',{id},`Remover sessão`);}
+
+// ANALISTAS
+function renderAnalistas(){
+  document.getElementById('analistas-tbody').innerHTML=S.analistas.length?S.analistas.map(a=>{
+    const od=S.mods_onb.filter(m=>S.regs_onb.find(r=>r.analistaId===a.id&&r.modulo===m&&r.concluido)).length;
+    const dd=S.mods_dir.filter(m=>S.regs_dir.find(r=>r.analistaId===a.id&&r.modulo===m&&r.concluido)).length;
+    return`<tr>
+      <td style="font-weight:500">${a.name}</td>
+      <td><span class="badge b-purple">${a.turno.split(' ')[0]}</span></td>
+      <td>${od}/${S.mods_onb.length}</td><td>${dd}/${S.mods_dir.length}</td>
+      <td style="white-space:nowrap">
+        <button class="btn" style="padding:3px 7px;font-size:10px" onclick="openEditAnalista('${a.id}')">Editar</button>
+        <button class="btn btn-danger" style="padding:3px 7px;font-size:10px;margin-left:3px" onclick="delAnalista('${a.id}')">Remover</button>
+      </td></tr>`;
+  }).join(''):'<tr><td colspan="5" class="empty">Nenhum analista.</td></tr>';
+}
+function openModalAnalista(){
+  openMod('Adicionar analista',`
+    <div class="frow"><label>Nome completo</label><input type="text" id="f-nome" placeholder="Nome do analista"></div>
+    <div class="frow"><label>Turno</label><select id="f-turno"><option>06h às 15h</option><option>14h às 23h</option><option>22h às 06h</option></select></div>`,
+  [{l:'Cancelar',c:'btn',f:'closeMod()'},{l:'Adicionar',c:'btn btn-primary',f:'saveAnalista()'}]);
+}
+function saveAnalista(){
+  const nome=document.getElementById('f-nome').value.trim();if(!nome)return;
+  submitChange('add_analista',{id:gid(),name:nome,turno:document.getElementById('f-turno').value},`Adicionar analista: ${nome}`);closeMod();
+}
+function openEditAnalista(id){
+  const a=S.analistas.find(x=>x.id===id);
+  openMod('Editar analista',`
+    <div class="frow"><label>Nome completo</label><input type="text" id="f-nome" value="${a.name}"></div>
+    <div class="frow"><label>Turno</label><select id="f-turno"><option${a.turno==='06h às 15h'?' selected':''}>06h às 15h</option><option${a.turno==='14h às 23h'?' selected':''}>14h às 23h</option><option${a.turno==='22h às 06h'?' selected':''}>22h às 06h</option></select></div>`,
+  [{l:'Cancelar',c:'btn',f:'closeMod()'},{l:'Salvar',c:'btn btn-primary',f:`saveEditAnalista('${id}')`}]);
+}
+function saveEditAnalista(id){
+  const nome=document.getElementById('f-nome').value.trim();if(!nome)return;
+  const turno=document.getElementById('f-turno').value;
+  const idx=S.analistas.findIndex(a=>a.id===id);
+  if(idx>=0){S.analistas[idx].name=nome;S.analistas[idx].turno=turno;}
+  saveS();renderAll();closeMod();showToast('Analista atualizado!');
+}
+function delAnalista(id){if(!confirm('Remover analista?'))return;submitChange('del_analista',{id},`Remover analista`);}
+
+// CONFIGURAÇÕES — INSTRUTORES E MÓDULOS
+function renderConfiguracoes(){
+  const instHtml=S.instrutores.map((inst,i)=>`
+    <div style="display:flex;align-items:center;gap:8px;padding:7px 0;border-bottom:1px solid var(--border)">
+      <div style="flex:1;font-size:13px;font-weight:500">${inst}</div>
+      <button class="btn" style="padding:3px 7px;font-size:10px" onclick="editInstrutor(${i})">Editar</button>
+      <button class="btn btn-danger" style="padding:3px 7px;font-size:10px" onclick="delInstrutor(${i})">Remover</button>
+    </div>`).join('');
+  const modOnbHtml=S.mods_onb.map((m,i)=>`
+    <div style="display:flex;align-items:center;gap:8px;padding:7px 0;border-bottom:1px solid var(--border)">
+      <div style="flex:1;font-size:13px">${m}</div>
+      <button class="btn" style="padding:3px 7px;font-size:10px" onclick="editModOnb(${i})">Editar</button>
+      <button class="btn btn-danger" style="padding:3px 7px;font-size:10px" onclick="delModOnbDirect(${i})">Remover</button>
+    </div>`).join('');
+  const modDirHtml=S.mods_dir.map((m,i)=>`
+    <div style="display:flex;align-items:center;gap:8px;padding:7px 0;border-bottom:1px solid var(--border)">
+      <div style="flex:1;font-size:13px">${m}</div>
+      <button class="btn" style="padding:3px 7px;font-size:10px" onclick="editModDir(${i})">Editar</button>
+      <button class="btn btn-danger" style="padding:3px 7px;font-size:10px" onclick="delModDirDirect(${i})">Remover</button>
+    </div>`).join('');
+  const el=document.getElementById('p-configuracoes');
+  if(!el)return;
+  el.querySelector('#conf-instrutores').innerHTML=instHtml||'<div class="empty">Nenhum instrutor.</div>';
+  el.querySelector('#conf-mods-onb').innerHTML=modOnbHtml||'<div class="empty">Nenhum módulo.</div>';
+  el.querySelector('#conf-mods-dir').innerHTML=modDirHtml||'<div class="empty">Nenhum treinamento.</div>';
+}
+function editInstrutor(i){
+  openMod('Editar instrutor',`<div class="frow"><label>Nome</label><input type="text" id="f-inst" value="${S.instrutores[i]}"></div>`,
+  [{l:'Cancelar',c:'btn',f:'closeMod()'},{l:'Salvar',c:'btn btn-primary',f:`saveEditInstrutor(${i})`}]);
+}
+function saveEditInstrutor(i){
+  const novo=document.getElementById('f-inst').value.trim();if(!novo)return;
+  const antigo=S.instrutores[i];
+  S.instrutores[i]=novo;
+  S.regs_onb.forEach(r=>{if(r.instrutor===antigo)r.instrutor=novo;});
+  S.regs_dir.forEach(r=>{if(r.instrutor===antigo)r.instrutor=novo;});
+  S.sessoes.forEach(s=>{if(s.instrutor===antigo)s.instrutor=novo;});
+  saveS();renderAll();renderConfiguracoes();closeMod();showToast('Instrutor atualizado!');
+}
+function delInstrutor(i){
+  if(!confirm('Remover instrutor?'))return;
+  S.instrutores.splice(i,1);saveS();renderAll();renderConfiguracoes();showToast('Instrutor removido.');
+}
+function addInstrutor(){
+  openMod('Novo instrutor',`<div class="frow"><label>Nome do instrutor</label><input type="text" id="f-inst" placeholder="Nome completo"></div>`,
+  [{l:'Cancelar',c:'btn',f:'closeMod()'},{l:'Adicionar',c:'btn btn-primary',f:'saveAddInstrutor()'}]);
+}
+function saveAddInstrutor(){
+  const n=document.getElementById('f-inst').value.trim();if(!n)return;
+  S.instrutores.push(n);saveS();renderConfiguracoes();closeMod();showToast('Instrutor adicionado!');
+}
+function editModOnb(i){
+  openMod('Editar módulo',`<div class="frow"><label>Nome do módulo</label><input type="text" id="f-mod" value="${S.mods_onb[i]}"></div>`,
+  [{l:'Cancelar',c:'btn',f:'closeMod()'},{l:'Salvar',c:'btn btn-primary',f:`saveEditModOnb(${i})`}]);
+}
+function saveEditModOnb(i){
+  const novo=document.getElementById('f-mod').value.trim();if(!novo)return;
+  const antigo=S.mods_onb[i];
+  S.mods_onb[i]=novo;
+  S.regs_onb.forEach(r=>{if(r.modulo===antigo)r.modulo=novo;});
+  saveS();renderAll();renderConfiguracoes();closeMod();showToast('Módulo atualizado!');
+}
+function delModOnbDirect(i){
+  if(!confirm('Remover módulo?'))return;
+  S.mods_onb.splice(i,1);saveS();renderAll();renderConfiguracoes();showToast('Módulo removido.');
+}
+function editModDir(i){
+  openMod('Editar treinamento',`<div class="frow"><label>Nome do treinamento</label><input type="text" id="f-mod" value="${S.mods_dir[i]}"></div>`,
+  [{l:'Cancelar',c:'btn',f:'closeMod()'},{l:'Salvar',c:'btn btn-primary',f:`saveEditModDir(${i})`}]);
+}
+function saveEditModDir(i){
+  const novo=document.getElementById('f-mod').value.trim();if(!novo)return;
+  const antigo=S.mods_dir[i];
+  S.mods_dir[i]=novo;
+  S.regs_dir.forEach(r=>{if(r.modulo===antigo)r.modulo=novo;});
+  saveS();renderAll();renderConfiguracoes();closeMod();showToast('Treinamento atualizado!');
+}
+function delModDirDirect(i){
+  if(!confirm('Remover treinamento?'))return;
+  S.mods_dir.splice(i,1);saveS();renderAll();renderConfiguracoes();showToast('Treinamento removido.');
+}
+
+// USUÁRIOS
+function renderUsuarios(){
+  if(!isG())return;
+  document.getElementById('usuarios-tbody').innerHTML=S.users.map(u=>`
+    <tr>
+      <td style="font-weight:500">${u.name}</td>
+      <td>${u.username}</td>
+      <td>${u.role==='gestao'?'<span class="badge b-purple">Gestão</span>':'<span class="badge b-teal">Instrutor</span>'}</td>
+      <td>
+        <span id="pw-${u.id}" style="font-size:12px;letter-spacing:1px">••••••••</span>
+        <button onclick="togglePw('${u.id}','${u.password}')" style="background:none;border:none;cursor:pointer;font-size:11px;color:var(--purple);margin-left:4px" title="Ver senha">👁</button>
+      </td>
+      <td style="white-space:nowrap">
+        <button class="btn" style="padding:3px 7px;font-size:10px" onclick="openEditUsuario('${u.id}')">Editar</button>
+        ${u.id!=='u1'?`<button class="btn btn-danger" style="padding:3px 7px;font-size:10px;margin-left:3px" onclick="delUsuario('${u.id}')">Remover</button>`:''}
+      </td>
+    </tr>`).join('');
+}
+function togglePw(id,pw){
+  const el=document.getElementById('pw-'+id);
+  el.textContent=el.textContent==='••••••••'?pw:'••••••••';
+}
+function openEditUsuario(id){
+  const u=S.users.find(x=>x.id===id);
+  openMod('Editar usuário',`
+    <div class="frow"><label>Nome</label><input type="text" id="f-nome" value="${u.name}"></div>
+    <div class="frow"><label>Usuário (login)</label><input type="text" id="f-user" value="${u.username}"></div>
+    <div class="frow"><label>Nova senha</label><input type="text" id="f-pass" value="${u.password}"></div>
+    <div class="frow"><label>Perfil</label><select id="f-role"><option value="instrutor"${u.role==='instrutor'?' selected':''}>Instrutor</option><option value="gestao"${u.role==='gestao'?' selected':''}>Gestão</option></select></div>`,
+  [{l:'Cancelar',c:'btn',f:'closeMod()'},{l:'Salvar',c:'btn btn-primary',f:`saveEditUsuario('${id}')`}]);
+}
+function saveEditUsuario(id){
+  const nome=document.getElementById('f-nome').value.trim();
+  const user=document.getElementById('f-user').value.trim();
+  const pass=document.getElementById('f-pass').value.trim();
+  if(!nome||!user||!pass){showToast('Preencha todos os campos.');return;}
+  const dup=S.users.find(u=>u.username===user&&u.id!==id);
+  if(dup){showToast('Usuário já existe.');return;}
+  const idx=S.users.findIndex(u=>u.id===id);
+  if(idx>=0){S.users[idx].name=nome;S.users[idx].username=user;S.users[idx].password=pass;S.users[idx].role=document.getElementById('f-role').value;}
+  saveS();renderUsuarios();closeMod();showToast('Usuário atualizado!');
+}
+function openModalUsuario(){
+  openMod('Novo usuário',`
+    <div class="frow"><label>Nome</label><input type="text" id="f-nome" placeholder="Nome completo"></div>
+    <div class="frow"><label>Usuário (login)</label><input type="text" id="f-user" placeholder="sem espaços"></div>
+    <div class="frow"><label>Senha</label><input type="text" id="f-pass" value="12345678"></div>
+    <div class="frow"><label>Perfil</label><select id="f-role"><option value="instrutor">Instrutor</option><option value="gestao">Gestão</option></select></div>`,
+  [{l:'Cancelar',c:'btn',f:'closeMod()'},{l:'Criar',c:'btn btn-primary',f:'saveUsuario()'}]);
+}
+function saveUsuario(){
+  const nome=document.getElementById('f-nome').value.trim();
+  const user=document.getElementById('f-user').value.trim();
+  const pass=document.getElementById('f-pass').value.trim();
+  if(!nome||!user||!pass){showToast('Preencha todos os campos.');return;}
+  if(S.users.find(u=>u.username===user)){showToast('Usuário já existe.');return;}
+  S.users.push({id:gid(),name:nome,username:user,password:pass,role:document.getElementById('f-role').value});
+  saveS();renderUsuarios();closeMod();showToast('Usuário criado!');
+}
+function delUsuario(id){if(!confirm('Remover usuário?'))return;S.users=S.users.filter(u=>u.id!==id);saveS();renderUsuarios();showToast('Removido.');}
+
+// APROVAÇÕES
+function renderAprov(){
+  const pend=S.pendentes.filter(p=>p.status==='pending');
+  if(isG()){
+    document.getElementById('aprov-gestao').style.display='block';
+    document.getElementById('aprov-instrutor').style.display='none';
+    document.getElementById('aprov-list').innerHTML=pend.length?pend.map(p=>`
+      <div class="apcard">
+        <div class="apicon">${p.author.split(' ').slice(0,2).map(x=>x[0]).join('')}</div>
+        <div style="flex:1">
+          <div class="aptitle">${p.desc}</div>
+          <div class="apmeta">Por ${p.author} · ${p.ts}</div>
+          <div class="apacts">
+            <button class="btn btn-success" style="font-size:11px;padding:5px 11px" onclick="approveChange('${p.id}')">✓ Aprovar</button>
+            <button class="btn btn-danger" style="font-size:11px;padding:5px 11px" onclick="rejectChange('${p.id}')">✕ Recusar</button>
+          </div>
+        </div>
+      </div>`).join(''):'<div class="empty">Nenhuma alteração pendente.</div>';
+  } else {
+    document.getElementById('aprov-gestao').style.display='none';
+    document.getElementById('aprov-instrutor').style.display='block';
+    const minhas=pend.filter(p=>p.author===CU.name);
+    document.getElementById('minhas-pend').innerHTML=minhas.length?minhas.map(p=>`
+      <div class="apcard">
+        <div style="flex:1"><div class="aptitle">${p.desc}</div><div class="apmeta">Enviado em ${p.ts}</div>
+        <span class="badge b-amber">Aguardando aprovação</span></div>
+      </div>`).join(''):'<div class="empty">Você não tem alterações pendentes.</div>';
+  }
+}
+
+// HELPERS
+function notaHtml(n){
+  if(!n&&n!==0)return'<span class="nbadge-html nn">—</span>';
+  const v=parseFloat(n);if(isNaN(v))return'<span class="nbadge-html nn">—</span>';
+  if(v>=8)return`<span class="nbadge-html na">${v.toFixed(1)}</span>`;
+  if(v>=6)return`<span class="nbadge-html nb">${v.toFixed(1)}</span>`;
+  return`<span class="nbadge-html nc">${v.toFixed(1)}</span>`;
+}
+function showPage(p,btn){
+  document.querySelectorAll('.page').forEach(e=>e.classList.remove('active'));
+  document.querySelectorAll('.nitem').forEach(e=>e.classList.remove('active'));
+  document.getElementById('p-'+p).classList.add('active');
+  if(btn)btn.classList.add('active');
+}
+function openMod(title,body,btns){
+  document.getElementById('mtitle-text').textContent=title;
+  document.getElementById('mbody').innerHTML=body;
+  document.getElementById('mfooter').innerHTML=btns.map(b=>`<button class="${b.c}" onclick="${b.f}">${b.l}</button>`).join('');
+  document.getElementById('moverlay').style.display='flex';
+}
+function closeMod(e){
+  if(e&&e.target!==document.getElementById('moverlay'))return;
+  document.getElementById('moverlay').style.display='none';
+}
+function showToast(msg){const t=document.getElementById('toast');t.textContent=msg;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),2800);}
+function exportCSV(){
+  let rows=[['Tipo','Analista','Turno','Módulo','Data','Nota','Instrutor','Concluído']];
+  S.analistas.forEach(a=>{
+    S.mods_onb.forEach(m=>{const r=S.regs_onb.find(x=>x.analistaId===a.id&&x.modulo===m)||{};rows.push(['Onboarding',a.name,a.turno,m,r.date||'',r.nota||'',r.instrutor||'',r.concluido?'Sim':'Não']);});
+    S.mods_dir.forEach(m=>{const r=S.regs_dir.find(x=>x.analistaId===a.id&&x.modulo===m)||{};rows.push(['Direcionado',a.name,a.turno,m,r.date||'',r.nota||'',r.instrutor||'',r.concluido?'Sim':'Não']);});
+  });
+  const csv=rows.map(r=>r.map(x=>`"${String(x).replace(/"/g,'""')}"`).join(',')).join('\n');
+  const a=document.createElement('a');a.href='data:text/csv;charset=utf-8,\uFEFF'+encodeURIComponent(csv);a.download='treinamentos_'+new Date().toISOString().slice(0,10)+'.csv';a.click();
+  showToast('CSV exportado!');
+}
+</script>
+</body>
+</html>
