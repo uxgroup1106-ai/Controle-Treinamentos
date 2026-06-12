@@ -210,7 +210,12 @@ tbody tr:hover td{background:#FAFAFE}
     <div class="card">
       <div class="ct"><svg viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>Dados do atendimento</div>
       <div class="g2f">
-        <div class="fr"><label>Analista</label><select id="fa"><option value="">Selecione...</option></select></div>
+        <div class="fr"><label>Analista</label>
+          <div style="display:flex;gap:7px;align-items:center">
+            <select id="fa" style="flex:1"><option value="">Selecione...</option></select>
+            <button class="btn btn-p" style="padding:6px 10px;font-size:11px;white-space:nowrap" onclick="openNovoAnalista()" title="Cadastrar novo analista">+ Novo</button>
+          </div>
+        </div>
         <div class="fr"><label>Data do atendimento</label><input type="date" id="fd"></div>
         <div class="fr"><label>Ticket / Protocolo</label><input type="text" id="ft" placeholder="Ex: #12345"></div>
         <div class="fr"><label>Avaliador</label><input type="text" id="fav" readonly style="background:var(--bg)"></div>
@@ -281,15 +286,14 @@ const SB_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJ
 
 async function sb(table, method='GET', body=null, query=''){
   const url = `${SB_URL}/rest/v1/${table}${query}`;
-  const opts = {
-    method,
-    headers:{
-      'apikey': SB_KEY,
-      'Authorization': `Bearer ${SB_KEY}`,
-      'Content-Type': 'application/json',
-      'Prefer': method==='POST'?'return=representation':'',
-    }
+  const headers = {
+    'apikey': SB_KEY,
+    'Authorization': `Bearer ${SB_KEY}`,
+    'Content-Type': 'application/json',
   };
+  if(method==='POST') headers['Prefer'] = 'return=representation';
+  if(method==='PATCH') headers['Prefer'] = 'return=minimal';
+  const opts = {method, headers};
   if(body) opts.body = JSON.stringify(body);
   const r = await fetch(url, opts);
   if(!r.ok){
@@ -297,7 +301,8 @@ async function sb(table, method='GET', body=null, query=''){
     throw new Error(err);
   }
   if(method==='DELETE'||r.status===204) return true;
-  return r.json();
+  const text = await r.text();
+  return text ? JSON.parse(text) : [];
 }
 
 // ─── CHECKLIST ──────────────────────────────────────────────────────
@@ -353,7 +358,7 @@ async function doLogin(){
       return;
     }
     CU = users[0];
-    localStorage.setItem('eqa_session', JSON.stringify({id:CU.id,username:CU.username}));
+    localStorage.setItem('eqa_session', JSON.stringify({id:CU.id}));
     document.getElementById('lerr').style.display='none';
     await startSession();
   } catch(e) {
@@ -432,11 +437,15 @@ async function loadUsers(){
 async function loadFeedbacks(){
   try {
     if(CU.role==='analista'){
-      FEEDBACKS = await sb('feedbacks','GET',null,`?analista_id=eq.${CU.id}&order=created_at.desc`);
+      FEEDBACKS = await sb('feedbacks','GET',null,`?analista_id=eq.${CU.id}&order=created_at.desc&select=*`);
     } else {
-      FEEDBACKS = await sb('feedbacks','GET',null,'?order=created_at.desc');
+      FEEDBACKS = await sb('feedbacks','GET',null,'?order=created_at.desc&select=*');
     }
-  } catch(e){ console.error('loadFeedbacks',e); }
+    if(!FEEDBACKS) FEEDBACKS = [];
+  } catch(e){
+    console.error('loadFeedbacks erro:', e);
+    FEEDBACKS = [];
+  }
 }
 
 // ─── RENDER ALL ─────────────────────────────────────────────────────
@@ -782,37 +791,65 @@ function renderUsers(){
 }
 function tPw(id,pw){const el=document.getElementById('upw-'+id);el.textContent=el.textContent==='••••••••'?pw:'••••••••';}
 
-function openModalUser(u){
+function openModalUser(u, forceRole){
   u=u||{};
+  const defaultRole = forceRole || u.role || 'analista';
   document.getElementById('mu-title').textContent=u.id?'Editar usuário':'Novo usuário';
   document.getElementById('mu-body').innerHTML=`
-    <div class="fr"><label>Nome completo</label><input type="text" id="mu-n" value="${u.name||''}"></div>
-    <div class="fr"><label>Usuário (login)</label><input type="text" id="mu-u" value="${u.username||''}"></div>
-    <div class="fr"><label>Senha</label><input type="text" id="mu-p" value="${u.password||'12345678'}"></div>
+    <div class="fr"><label>Nome completo</label><input type="text" id="mu-n" value="${u.name||''}" placeholder="Ex: João Silva Santos"></div>
+    <div class="fr"><label>Usuário (login) <span style="font-size:10px;color:var(--tm);font-weight:400">— sem espaços ou acentos</span></label>
+      <input type="text" id="mu-u" value="${u.username||''}" placeholder="Ex: joao.silva" oninput="autoUser(this)">
+    </div>
+    <div class="fr"><label>Senha inicial</label><input type="text" id="mu-p" value="${u.password||'12345678'}"></div>
     <div class="fr"><label>Perfil</label><select id="mu-r">
-      <option value="analista"${u.role==='analista'?' selected':''}>Analista</option>
-      <option value="gestor"${u.role==='gestor'?' selected':''}>Gestor</option>
-    </select></div>`;
+      <option value="analista"${defaultRole==='analista'?' selected':''}>👤 Analista — visualiza seus feedbacks</option>
+      <option value="gestor"${defaultRole==='gestor'?' selected':''}>⚙️ Gestor — acesso total</option>
+    </select></div>
+    <div style="background:var(--bg);border-radius:var(--r);padding:10px 12px;font-size:11px;color:var(--tm);margin-top:4px">
+      💡 O analista receberá login com usuário e senha acima para acessar o sistema.
+    </div>`;
   document.getElementById('mu-foot').innerHTML=`<button class="btn" onclick="closeUserMod()">Cancelar</button><button class="btn btn-p" onclick="saveUser('${u.id||''}')">Salvar</button>`;
   document.getElementById('mod-user').style.display='flex';
+  setTimeout(()=>document.getElementById('mu-n').focus(),100);
+}
+
+function autoUser(input){
+  // Auto-suggest username from name field if username is empty
+  const nome = document.getElementById('mu-n').value;
+  if(!nome) return;
+  const parts = nome.trim().toLowerCase()
+    .normalize('NFD').replace(/[\u0300-\u036f]/g,'')
+    .split(' ').filter(Boolean);
+  if(parts.length>=2) input.value = parts[0]+'.'+parts[parts.length-1];
+}
+
+function openNovoAnalista(){
+  openModalUser({}, 'analista');
 }
 function openEditUser(id){openModalUser(USERS.find(u=>u.id===id));}
 function closeUserMod(e){if(e&&e.target!==document.getElementById('mod-user'))return;document.getElementById('mod-user').style.display='none';}
 
 async function saveUser(id){
   const n=document.getElementById('mu-n').value.trim();
-  const u=document.getElementById('mu-u').value.trim();
+  let u=document.getElementById('mu-u').value.trim().toLowerCase();
   const p=document.getElementById('mu-p').value.trim();
   const r=document.getElementById('mu-r').value;
-  if(!n||!u||!p){showToast('Preencha todos os campos.');return;}
+  if(!n){showToast('Preencha o nome completo.');return;}
+  if(!u){
+    const parts=n.normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase().split(' ').filter(Boolean);
+    u=parts.length>=2?parts[0]+'.'+parts[parts.length-1]:parts[0];
+    document.getElementById('mu-u').value=u;
+  }
+  if(!p){showToast('Preencha a senha.');return;}
   try{
     if(id){
       await sb('usuarios','PATCH',{name:n,username:u,password:p,role:r},`?id=eq.${id}`);
     } else {
       await sb('usuarios','POST',{name:n,username:u,password:p,role:r});
     }
-    await loadUsers();renderUsers();buildAnalistaSel();closeUserMod();showToast(id?'Atualizado!':'Usuário criado!');
-  }catch(e){showToast('Erro. Usuário pode já existir.');}
+    await loadUsers();renderUsers();buildAnalistaSel();closeUserMod();
+    showToast(id?'Atualizado!':r==='analista'?`Analista "${n}" cadastrado! Login: ${u}`:'Usuário criado!');
+  }catch(e){showToast('Erro. Verifique se o usuário já existe.');console.error(e);}
 }
 async function delUser(id){
   if(!confirm('Remover usuário? Feedbacks vinculados a ele serão mantidos.'))return;
