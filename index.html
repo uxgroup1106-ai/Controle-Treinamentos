@@ -252,6 +252,8 @@ tbody tr:hover td{background:#FAFAFE}
 <div id="p-onboarding" class="page">
   <div class="topbar"><div class="ptitle">Onboarding</div>
     <div class="tbright">
+      <button class="btn" style="padding:5px 10px;font-size:11px" onclick="expandAll('onb')">▾ Expandir todos</button>
+      <button class="btn" style="padding:5px 10px;font-size:11px" onclick="collapseAll('onb')">▸ Recolher todos</button>
       <button class="btn btn-primary" onclick="openModalAddModOnb()"><svg viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>Novo módulo</button>
     </div>
   </div>
@@ -271,6 +273,8 @@ tbody tr:hover td{background:#FAFAFE}
 <div id="p-direcionados" class="page">
   <div class="topbar"><div class="ptitle">Treinamentos Direcionados</div>
     <div class="tbright">
+      <button class="btn" style="padding:5px 10px;font-size:11px" onclick="expandAll('dir')">▾ Expandir todos</button>
+      <button class="btn" style="padding:5px 10px;font-size:11px" onclick="collapseAll('dir')">▸ Recolher todos</button>
       <button class="btn btn-primary" onclick="openModalAddModDir()"><svg viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>Novo treinamento</button>
     </div>
   </div>
@@ -564,6 +568,24 @@ function buildModFil(){
   const ca=sa.value;
   sa.innerHTML='<option value="">Todos os analistas</option>'+S.analistas.map(a=>`<option value="${a.id}"${a.id===ca?' selected':''}>${a.name}</option>`).join('');
 }
+// Estado de expandido/recolhido por analista
+const expandedOnb={};
+const expandedDir={};
+function toggleGroup(tipo,aid){
+  if(tipo==='onb'){expandedOnb[aid]=!expandedOnb[aid];renderOnb();}
+  else{expandedDir[aid]=!expandedDir[aid];renderDir();}
+}
+function expandAll(tipo){
+  const analistas=S.analistas;
+  if(tipo==='onb'){analistas.forEach(a=>expandedOnb[a.id]=true);renderOnb();}
+  else{analistas.forEach(a=>expandedDir[a.id]=true);renderDir();}
+}
+function collapseAll(tipo){
+  const analistas=S.analistas;
+  if(tipo==='onb'){analistas.forEach(a=>expandedOnb[a.id]=false);renderOnb();}
+  else{analistas.forEach(a=>expandedDir[a.id]=false);renderDir();}
+}
+
 function renderOnb(){
   const turno=document.getElementById('fil-turno-onb')?.value||'';
   const mod=document.getElementById('fil-mod-onb')?.value||'';
@@ -574,22 +596,41 @@ function renderOnb(){
   analistas.forEach(a=>{
     const regs=mods.map(m=>({m,reg:S.regs_onb.find(r=>r.analistaId===a.id&&r.modulo===m)||{}}));
     const done=regs.filter(r=>r.reg.concluido).length;
-    html+=`<tr style="background:#F4F4FF">
-      <td colspan="2" style="font-weight:700;font-size:12px;padding:8px 10px">${a.name} <span style="font-size:10px;font-weight:400;color:var(--text-muted)">${a.turno.split(' ')[0]} · ${done}/${mods.length} concluídos</span></td>
-      <td colspan="6" style="padding:8px 10px"></td>
+    const expanded=expandedOnb[a.id]!==false; // expandido por padrão
+    const pct=mods.length?Math.round(done/mods.length*100):0;
+    const barColor=pct===100?'#52873C':pct>=50?'#BA7517':'#E24B4A';
+    html+=`<tr style="background:#F0F0FF;cursor:pointer" onclick="toggleGroup('onb','${a.id}')">
+      <td colspan="2" style="font-weight:700;font-size:12px;padding:9px 10px;user-select:none">
+        <span style="margin-right:6px;font-size:14px">${expanded?'▾':'▸'}</span>
+        ${a.name}
+        <span style="font-size:10px;font-weight:400;color:var(--text-muted);margin-left:6px">${a.turno.split(' ')[0]}</span>
+      </td>
+      <td colspan="4" style="padding:9px 10px">
+        <div style="display:flex;align-items:center;gap:8px">
+          <div style="flex:1;height:5px;background:var(--bg);border-radius:999px;overflow:hidden;max-width:120px">
+            <div style="height:100%;width:${pct}%;background:${barColor};border-radius:999px"></div>
+          </div>
+          <span style="font-size:11px;color:${barColor};font-weight:600">${done}/${mods.length} concluídos</span>
+        </div>
+      </td>
+      <td colspan="2" style="padding:9px 10px;text-align:right">
+        <span style="font-size:10px;color:var(--text-hint)">${expanded?'Recolher':'Expandir'}</span>
+      </td>
     </tr>`;
-    regs.forEach(({m,reg})=>{
-      html+=`<tr>
-        <td style="padding-left:22px;font-size:11px;color:var(--text-muted)" colspan="2">${m}</td>
-        <td>${reg.date||'—'}</td>
-        <td>${notaHtml(reg.nota)}</td><td>${reg.instrutor||'—'}</td>
-        <td>${reg.concluido?'<span class="chk-y">✓ Concluído</span>':'<span class="chk-n">✗ Pendente</span>'}</td>
-        <td style="white-space:nowrap" colspan="2">
-          <button class="btn" style="padding:3px 7px;font-size:10px" onclick="openEditOnb('${a.id}','${m}')">Editar</button>
-          ${reg.id?`<button class="btn btn-danger" style="padding:3px 7px;font-size:10px;margin-left:3px" onclick="delOnb('${reg.id}')">Remover</button>`:''}
-        </td>
-      </tr>`;
-    });
+    if(expanded){
+      regs.forEach(({m,reg})=>{
+        html+=`<tr style="background:var(--surface)">
+          <td style="padding-left:30px;font-size:11px;color:var(--text-muted)" colspan="2">${m}</td>
+          <td>${reg.date||'—'}</td>
+          <td>${notaHtml(reg.nota)}</td><td>${reg.instrutor||'—'}</td>
+          <td>${reg.concluido?'<span class="chk-y">✓ Concluído</span>':'<span class="chk-n">✗ Pendente</span>'}</td>
+          <td style="white-space:nowrap" colspan="2">
+            <button class="btn" style="padding:3px 7px;font-size:10px" onclick="event.stopPropagation();openEditOnb('${a.id}','${m}')">Editar</button>
+            ${reg.id?`<button class="btn btn-danger" style="padding:3px 7px;font-size:10px;margin-left:3px" onclick="event.stopPropagation();delOnb('${reg.id}')">Remover</button>`:''}
+          </td>
+        </tr>`;
+      });
+    }
   });
   document.getElementById('onb-tbody').innerHTML=html||'<tr><td colspan="8" class="empty">Nenhum registro.</td></tr>';
 }
@@ -634,22 +675,41 @@ function renderDir(){
   analistas.forEach(a=>{
     const regs=mods.map(m=>({m,reg:S.regs_dir.find(r=>r.analistaId===a.id&&r.modulo===m)||{}}));
     const done=regs.filter(r=>r.reg.concluido).length;
-    html+=`<tr style="background:#F4F4FF">
-      <td colspan="2" style="font-weight:700;font-size:12px;padding:8px 10px">${a.name} <span style="font-size:10px;font-weight:400;color:var(--text-muted)">${a.turno.split(' ')[0]} · ${done}/${mods.length} concluídos</span></td>
-      <td colspan="6" style="padding:8px 10px"></td>
+    const expanded=expandedDir[a.id]!==false;
+    const pct=mods.length?Math.round(done/mods.length*100):0;
+    const barColor=pct===100?'#52873C':pct>=50?'#BA7517':'#E24B4A';
+    html+=`<tr style="background:#F0F0FF;cursor:pointer" onclick="toggleGroup('dir','${a.id}')">
+      <td colspan="2" style="font-weight:700;font-size:12px;padding:9px 10px;user-select:none">
+        <span style="margin-right:6px;font-size:14px">${expanded?'▾':'▸'}</span>
+        ${a.name}
+        <span style="font-size:10px;font-weight:400;color:var(--text-muted);margin-left:6px">${a.turno.split(' ')[0]}</span>
+      </td>
+      <td colspan="4" style="padding:9px 10px">
+        <div style="display:flex;align-items:center;gap:8px">
+          <div style="flex:1;height:5px;background:var(--bg);border-radius:999px;overflow:hidden;max-width:120px">
+            <div style="height:100%;width:${pct}%;background:${barColor};border-radius:999px"></div>
+          </div>
+          <span style="font-size:11px;color:${barColor};font-weight:600">${done}/${mods.length} concluídos</span>
+        </div>
+      </td>
+      <td colspan="2" style="padding:9px 10px;text-align:right">
+        <span style="font-size:10px;color:var(--text-hint)">${expanded?'Recolher':'Expandir'}</span>
+      </td>
     </tr>`;
-    regs.forEach(({m,reg})=>{
-      html+=`<tr>
-        <td style="padding-left:22px;font-size:11px;color:var(--text-muted)" colspan="2">${m}</td>
-        <td>${reg.date||'—'}</td>
-        <td>${notaHtml(reg.nota)}</td><td>${reg.instrutor||'—'}</td>
-        <td>${reg.concluido?'<span class="chk-y">✓ Concluído</span>':'<span class="chk-n">✗ Pendente</span>'}</td>
-        <td style="white-space:nowrap" colspan="2">
-          <button class="btn" style="padding:3px 7px;font-size:10px" onclick="openEditDir('${a.id}','${m}')">Editar</button>
-          ${reg.id?`<button class="btn btn-danger" style="padding:3px 7px;font-size:10px;margin-left:3px" onclick="delDir('${reg.id}')">Remover</button>`:''}
-        </td>
-      </tr>`;
-    });
+    if(expanded){
+      regs.forEach(({m,reg})=>{
+        html+=`<tr style="background:var(--surface)">
+          <td style="padding-left:30px;font-size:11px;color:var(--text-muted)" colspan="2">${m}</td>
+          <td>${reg.date||'—'}</td>
+          <td>${notaHtml(reg.nota)}</td><td>${reg.instrutor||'—'}</td>
+          <td>${reg.concluido?'<span class="chk-y">✓ Concluído</span>':'<span class="chk-n">✗ Pendente</span>'}</td>
+          <td style="white-space:nowrap" colspan="2">
+            <button class="btn" style="padding:3px 7px;font-size:10px" onclick="event.stopPropagation();openEditDir('${a.id}','${m}')">Editar</button>
+            ${reg.id?`<button class="btn btn-danger" style="padding:3px 7px;font-size:10px;margin-left:3px" onclick="event.stopPropagation();delDir('${reg.id}')">Remover</button>`:''}
+          </td>
+        </tr>`;
+      });
+    }
   });
   document.getElementById('dir-tbody').innerHTML=html||'<tr><td colspan="8" class="empty">Nenhum registro.</td></tr>';
 }
