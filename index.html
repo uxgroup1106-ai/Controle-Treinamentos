@@ -446,8 +446,11 @@ tbody tr:hover td{background:#FAFAFE}
 
 <!-- USUÁRIOS -->
 <div id="p-usuarios" class="page">
-  <div class="tb"><div class="pt">Usuários do sistema</div><div class="tbr"><button class="btn btn-p" onclick="openModalUser()"><svg viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>Novo usuário</button></div></div>
-  <div class="con"><div class="tw"><table><thead><tr><th>Nome</th><th>Usuário</th><th>Perfil</th><th>Senha</th><th>Ações</th></tr></thead><tbody id="users-tbody"></tbody></table></div></div>
+  <div class="tb"><div class="pt">Usuários do sistema</div><div class="tbr">
+    <button class="btn" onclick="loadUsers();renderUsers()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="13" height="13"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-.08-4.43"/></svg>Atualizar</button>
+    <button class="btn btn-p" onclick="openModalUser()"><svg viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>Novo usuário</button>
+  </div></div>
+  <div class="con"><div class="tw"><table><thead><tr><th>Nome</th><th>Usuário</th><th>Perfil</th><th>Status</th><th>Último login</th><th>Senha</th><th>Ações</th></tr></thead><tbody id="users-tbody"></tbody></table></div></div>
 </div>
 
 </div><!-- /main -->
@@ -536,6 +539,7 @@ async function doLogin(){
     if(!res||!res.length){document.getElementById('lerr').style.display='block';btn.textContent='Entrar';btn.disabled=false;return;}
     CU=res[0];
     localStorage.setItem('uxg_session',JSON.stringify({id:CU.id}));
+    try{await api('usuarios','PATCH',{ultimo_login:new Date().toISOString(),online:true},`?id=eq.${CU.id}`);}catch(e){}
     document.getElementById('lerr').style.display='none';
     await startSession();
   }catch(e){showToast('Erro de conexão.');btn.textContent='Entrar';btn.disabled=false;}
@@ -611,12 +615,18 @@ async function startSession(){
   showPage('dashboard',document.querySelector('.ni'));
 }
 function doLogout(){
+  if(CU)try{api('usuarios','PATCH',{online:false},`?id=eq.${CU.id}`);}catch(e){}
   CU=null;localStorage.removeItem('uxg_session');
   document.getElementById('app-screen').style.display='none';
   document.getElementById('login-screen').style.display='block';
   document.getElementById('lu').value='';document.getElementById('lp').value='';
   document.getElementById('lbtn').textContent='Entrar';document.getElementById('lbtn').disabled=false;
 }
+// Marcar offline ao fechar aba
+window.addEventListener('beforeunload',()=>{
+  if(CU)navigator.sendBeacon(`${SB}/rest/v1/usuarios?id=eq.${CU.id}`,
+    JSON.stringify({online:false}));
+});
 
 // ─── LOAD DATA ───────────────────────────────────────────────────────
 async function loadAll(){
@@ -1446,15 +1456,44 @@ function openEditItemCL(si,ii){const it=CL[si].itens[ii];openForm('Editar item',
 function delItemCL(si,ii){if(!confirm('Remover item?'))return;CL[si].itens.splice(ii,1);saveCL();renderChecklistEditor();showToast('Removido!');}
 
 // ─── USUÁRIOS ─────────────────────────────────────────────────────────
+async function loadUsers(){
+  try{USERS=await api('usuarios','GET',null,'?order=name');}catch(e){}
+}
+
 function renderUsers(){
-  document.getElementById('users-tbody').innerHTML=USERS.map(u=>`
-    <tr><td style="font-weight:500">${u.name}</td><td>${u.username}</td>
-    <td>${{admin:'<span class="badge bp">Admin</span>',auditoria:'<span class="badge br">Auditoria</span>',treinamento:'<span class="badge bt">Treinamento</span>',analista:'<span class="badge bg">Analista</span>'}[u.role]||u.role}</td>
-    <td><span id="upw-${u.id}">••••••••</span> <button onclick="togglePw('${u.id}','${u.password}')" style="background:none;border:none;cursor:pointer;font-size:11px;color:var(--purple)">👁</button></td>
-    <td style="white-space:nowrap">
-      <button class="btn" style="padding:3px 7px;font-size:10px" onclick="openEditUser('${u.id}')">Editar</button>
-      <button class="btn btn-d" style="padding:3px 7px;font-size:10px;margin-left:3px" onclick="delUser('${u.id}')">Remover</button>
-    </td></tr>`).join('');
+  const now=Date.now();
+  document.getElementById('users-tbody').innerHTML=USERS.map(u=>{
+    const online=u.online;
+    const lastLogin=u.ultimo_login?new Date(u.ultimo_login):null;
+    const diffMin=lastLogin?Math.floor((now-lastLogin.getTime())/60000):null;
+    const loginStr=lastLogin?formatTimeAgo(diffMin):'Nunca';
+    const statusBadge=online
+      ?'<span class="badge bg" style="gap:4px"><span style="width:6px;height:6px;background:#27500A;border-radius:50%;display:inline-block"></span>Online</span>'
+      :'<span class="badge" style="background:var(--bg);color:var(--tm)">Offline</span>';
+    return`<tr>
+      <td style="font-weight:500">${u.name}</td>
+      <td style="color:var(--tm)">${u.username}</td>
+      <td>${{admin:'<span class="badge bp">Admin</span>',auditoria:'<span class="badge br">Auditoria</span>',treinamento:'<span class="badge bt">Treinamento</span>',analista:'<span class="badge bg">Analista</span>'}[u.role]||u.role}</td>
+      <td>${statusBadge}</td>
+      <td style="font-size:11px;color:var(--tm)">${loginStr}</td>
+      <td><span id="upw-${u.id}">••••••••</span> <button onclick="togglePw('${u.id}','${u.password}')" style="background:none;border:none;cursor:pointer;font-size:11px;color:var(--purple)">👁</button></td>
+      <td style="white-space:nowrap">
+        <button class="btn" style="padding:3px 7px;font-size:10px" onclick="openEditUser('${u.id}')">Editar</button>
+        <button class="btn btn-d" style="padding:3px 7px;font-size:10px;margin-left:3px" onclick="delUser('${u.id}')">Remover</button>
+      </td>
+    </tr>`;
+  }).join('');
+}
+
+function formatTimeAgo(min){
+  if(min===null)return'Nunca';
+  if(min<1)return'Agora mesmo';
+  if(min<60)return`${min}min atrás`;
+  const h=Math.floor(min/60);
+  if(h<24)return`${h}h atrás`;
+  const d=Math.floor(h/24);
+  if(d<7)return`${d}d atrás`;
+  return`${Math.floor(d/7)}sem atrás`;
 }
 function togglePw(id,pw){const el=document.getElementById('upw-'+id);el.textContent=el.textContent==='••••••••'?pw:'••••••••';}
 function openModalUser(u){
