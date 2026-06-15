@@ -777,7 +777,8 @@ function renderCursos(){
         const prog=analMatch?PROGRESSO.find(p=>p.curso_id===c.id&&p.analista_id===analMatch.id):null;
         const done=prog?.concluido;
         // Find linked modulo
-        const modOnb=MODS_ONB.find(m=>m.nome.toLowerCase().includes(c.titulo.toLowerCase().split(' ')[0]));
+        const modOnb=c.modulo_onb_id?MODS_ONB.find(m=>m.id===c.modulo_onb_id):null;
+        const modDir=c.modulo_dir_id?MODS_DIR.find(m=>m.id===c.modulo_dir_id):null;
         return`<div class="curso-card" onclick="abrirCurso('${c.id}')">
           <div class="curso-icon">${cat==='Onboarding'?'🚀':cat==='Ferramentas'?'🔧':cat==='Qualidade'?'⭐':'📖'}</div>
           <div class="curso-info">
@@ -786,7 +787,8 @@ function renderCursos(){
             <div class="curso-meta">
               ${c.duracao?`<span class="badge bt">⏱ ${c.duracao}</span>`:''}
               ${done?'<span class="badge bg">✓ Concluído</span>':'<span class="badge ba">Pendente</span>'}
-              ${modOnb?`<span class="badge bp">📋 ${modOnb.nome}</span>`:''}
+              ${modOnb?`<span class="badge bp">📋 ONB: ${modOnb.nome}</span>`:''}
+              ${modDir?`<span class="badge bt">🎯 DIR: ${modDir.nome}</span>`:''}
             </div>
           </div>
           <div style="display:flex;gap:6px;flex-shrink:0">
@@ -801,7 +803,6 @@ function abrirCurso(id){
   const c=CURSOS.find(x=>x.id===id);if(!c)return;
   curCursoId=id;
   document.getElementById('curso-det-title').textContent=c.titulo;
-  // Check if analista concluded
   const analMatch=ANALISTAS.find(a=>a.name.toLowerCase()===CU.name.toLowerCase());
   const prog=analMatch?PROGRESSO.find(p=>p.curso_id===id&&p.analista_id===analMatch.id):null;
   const btnConc=document.getElementById('btn-concluir-curso');
@@ -811,9 +812,17 @@ function abrirCurso(id){
       btnConc.textContent=prog?.concluido?'✓ Concluído':'✓ Marcar como concluído';
     } else {btnConc.style.display='none';}
   }
-  // Render content
   const conteudo=c.conteudo||'';
   const html=mdToHtml(conteudo);
+  // PDF viewer — se pdf_file estiver preenchido mostra o PDF embutido
+  const pdfBlock=c.pdf_file?`
+    <div class="card" style="margin-bottom:12px">
+      <div class="ct"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="14" height="14"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>Apresentação em slides</div>
+      <iframe src="${c.pdf_file}" style="width:100%;height:600px;border:none;border-radius:var(--r)"></iframe>
+      <div style="margin-top:8px;text-align:right">
+        <a href="${c.pdf_file}" target="_blank" class="btn" style="padding:5px 12px;font-size:12px">⬇ Baixar PDF</a>
+      </div>
+    </div>`:'';
   document.getElementById('curso-det-body').innerHTML=`
     <div class="card" style="margin-bottom:12px">
       <div style="display:flex;gap:12px;align-items:center;flex-wrap:wrap">
@@ -824,7 +833,8 @@ function abrirCurso(id){
       </div>
       ${c.descricao?`<div style="font-size:13px;color:var(--tm);margin-top:10px;line-height:1.6">${c.descricao}</div>`:''}
     </div>
-    <div class="card"><div class="curso-content">${html}</div></div>
+    ${pdfBlock}
+    ${html?`<div class="card"><div class="curso-content">${html}</div></div>`:''}
   `;
   showPage('curso-detalhe',document.getElementById('ni-cursos'));
 }
@@ -859,6 +869,8 @@ async function concluirCurso(){
 
 function openModalCurso(id){
   const c=id?CURSOS.find(x=>x.id===id):null;
+  const modsOnbOpts=MODS_ONB.map(m=>`<option value="${m.id}"${c?.modulo_onb_id===m.id?' selected':''}>${m.nome}</option>`).join('');
+  const modsDirOpts=MODS_DIR.map(m=>`<option value="${m.id}"${c?.modulo_dir_id===m.id?' selected':''}>${m.nome}</option>`).join('');
   openForm(c?'Editar curso':'Novo curso',`
     <div class="fr"><label>Título</label><input type="text" id="f-tit" value="${c?.titulo||''}" placeholder="Nome do curso"></div>
     <div class="g2f">
@@ -866,19 +878,77 @@ function openModalCurso(id){
       <div class="fr"><label>Duração</label><input type="text" id="f-dur" value="${c?.duracao||''}" placeholder="Ex: 1 dia"></div>
     </div>
     <div class="fr"><label>Descrição breve</label><input type="text" id="f-desc" value="${c?.descricao||''}" placeholder="Resumo do curso"></div>
+    <div class="fr">
+      <label>Arquivo PDF <span style="font-size:10px;color:var(--tm);font-weight:400">— faça upload direto aqui</span></label>
+      <div style="display:flex;gap:8px;align-items:center">
+        <input type="file" id="f-pdf-file" accept=".pdf" style="display:none" onchange="previewPdf(this)">
+        <button type="button" class="btn" onclick="document.getElementById('f-pdf-file').click()" style="padding:6px 12px;font-size:12px">📎 Selecionar PDF</button>
+        <span id="f-pdf-name" style="font-size:12px;color:var(--tm);flex:1">${c?.pdf_file?'✅ PDF atual: '+c.pdf_file.split('/').pop():'Nenhum arquivo selecionado'}</span>
+      </div>
+      <input type="hidden" id="f-pdf" value="${c?.pdf_file||''}">
+    </div>
     <div class="fr"><label>Link externo (opcional)</label><input type="text" id="f-link" value="${c?.link_externo||''}" placeholder="https://..."></div>
-    <div class="fr"><label>Conteúdo (suporte a Markdown: ## Título, - item, **negrito**)</label><textarea id="f-cont" style="min-height:160px">${c?.conteudo||''}</textarea></div>`,
+    <div style="background:var(--bg);border-radius:var(--r);padding:10px 12px;margin-bottom:10px">
+      <div style="font-size:11px;font-weight:700;color:var(--tm);text-transform:uppercase;letter-spacing:.04em;margin-bottom:8px">🔗 Vincular a módulo (opcional)</div>
+      <div class="g2f">
+        <div class="fr"><label>Módulo Onboarding</label><select id="f-mod-onb"><option value="">Nenhum</option>${modsOnbOpts}</select></div>
+        <div class="fr"><label>Treinamento Direcionado</label><select id="f-mod-dir"><option value="">Nenhum</option>${modsDirOpts}</select></div>
+      </div>
+      <div style="font-size:11px;color:var(--tm)">💡 Ao vincular, o curso aparece relacionado ao módulo correspondente.</div>
+    </div>
+    <div class="fr"><label>Conteúdo (suporte a Markdown: ## Título, - item, **negrito**)</label><textarea id="f-cont" style="min-height:120px">${c?.conteudo||''}</textarea></div>`,
   async()=>{
     const titulo=document.getElementById('f-tit').value.trim();
     const cat=document.getElementById('f-cat').value.trim();
     if(!titulo||!cat){showToast('Preencha título e categoria!');return;}
-    const payload={titulo,categoria:cat,duracao:document.getElementById('f-dur').value,descricao:document.getElementById('f-desc').value,link_externo:document.getElementById('f-link').value||null,conteudo:document.getElementById('f-cont').value,ativo:true};
+    const btn=document.getElementById('mf-save');
+    btn.textContent='Salvando...';btn.disabled=true;
+    // Upload PDF se tiver arquivo novo
+    let pdfUrl=document.getElementById('f-pdf').value||null;
+    const fileInp=document.getElementById('f-pdf-file');
+    if(fileInp.files&&fileInp.files[0]){
+      const file=fileInp.files[0];
+      const fname=titulo.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/\s+/g,'-').replace(/[^a-z0-9-]/g,'')+'-'+Date.now()+'.pdf';
+      try{
+        const uploadResp=await fetch(`${SB}/storage/v1/object/Cursos/${fname}`,{
+          method:'POST',
+          headers:{'apikey':KEY,'Authorization':'Bearer '+KEY,'Content-Type':'application/pdf','x-upsert':'true'},
+          body:file
+        });
+        if(uploadResp.ok){
+          pdfUrl=`${SB}/storage/v1/object/public/Cursos/${fname}`;
+          showToast('PDF enviado!');
+        } else {
+          const err=await uploadResp.text();
+          console.error('Upload error:',err);
+          showToast('Erro no upload do PDF.');
+          btn.textContent='Salvar';btn.disabled=false;return;
+        }
+      }catch(e){showToast('Erro no upload.');btn.textContent='Salvar';btn.disabled=false;return;}
+    }
+    const payload={
+      titulo,categoria:cat,
+      duracao:document.getElementById('f-dur').value,
+      descricao:document.getElementById('f-desc').value,
+      pdf_file:pdfUrl,
+      link_externo:document.getElementById('f-link').value||null,
+      modulo_onb_id:document.getElementById('f-mod-onb').value||null,
+      modulo_dir_id:document.getElementById('f-mod-dir').value||null,
+      conteudo:document.getElementById('f-cont').value,
+      ativo:true
+    };
     try{
       if(id){await api('cursos','PATCH',payload,`?id=eq.${id}`);}
       else{await api('cursos','POST',payload);}
       await loadAll();closeMod('mod-form');showToast(id?'Curso atualizado!':'Curso criado!');
-    }catch(e){showToast('Erro.');}
+    }catch(e){showToast('Erro ao salvar.');console.error(e);}
+    btn.textContent='Salvar';btn.disabled=false;
   });
+}
+
+function previewPdf(input){
+  const name=input.files[0]?.name||'';
+  document.getElementById('f-pdf-name').textContent=name?'📄 '+name:'Nenhum arquivo selecionado';
 }
 async function delCurso(id){
   if(!confirm('Remover este curso?'))return;
