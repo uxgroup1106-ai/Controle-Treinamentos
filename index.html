@@ -544,12 +544,22 @@ document.getElementById('lp').addEventListener('keydown',e=>{if(e.key==='Enter')
 
 async function tryRestore(){
   try{
-    const s=localStorage.getItem('uxg_session');if(!s)return;
+    const s=localStorage.getItem('uxg_session');
+    if(!s){
+      document.getElementById('loading-screen').style.display='none';
+      document.getElementById('login-screen').style.display='block';
+      return;
+    }
     const {id}=JSON.parse(s);
     const res=await api('usuarios','GET',null,`?id=eq.${id}`);
     if(res&&res.length){CU=res[0];await startSession();}
-    else localStorage.removeItem('uxg_session');
+    else{localStorage.removeItem('uxg_session');}
   }catch(e){localStorage.removeItem('uxg_session');}
+  finally{
+    const ls=document.getElementById('loading-screen');
+    if(ls)ls.style.display='none';
+    if(!CU)document.getElementById('login-screen').style.display='block';
+  }
 }
 
 async function startSession(){
@@ -576,7 +586,7 @@ async function startSession(){
 
   // Treinamentos — todos veem, Treinamento e Admin editam
   show('ns-trei',true);
-  show('ni-onb',true);show('ni-dir',true);show('ni-rec',true);show('ni-cron',true);show('ni-cursos',true);
+  show('ni-onb',true);show('ni-dir',true);show('ni-rec',isGestor);show('ni-cron',isGestor);show('ni-cursos',true);show('btn-add-mod-onb',podesTrei);show('btn-add-mod-dir',podesTrei);
   show('btn-add-mod-onb',isAdmin||isTrei);show('btn-add-mod-dir',isAdmin||isTrei);
 
   // Qualidade — todos veem, Auditoria e Admin aplicam
@@ -785,12 +795,19 @@ function abrirCurso(id){
   if(btnConc){
     if(CU.role==='analista'&&analMatch){
       btnConc.style.display=prog?.concluido?'none':'';
-      btnConc.textContent=prog?.concluido?'✓ Concluído':'✓ Marcar como concluído';
+      btnConc.textContent='✓ Marcar como concluído';
     } else {btnConc.style.display='none';}
   }
   const conteudo=c.conteudo||'';
   const html=mdToHtml(conteudo);
-  // PDF viewer — se pdf_file estiver preenchido mostra o PDF embutido
+  // Módulo vinculado
+  const modOnb=c.modulo_onb_id?MODS_ONB.find(m=>m.id===c.modulo_onb_id):null;
+  const modDir=c.modulo_dir_id?MODS_DIR.find(m=>m.id===c.modulo_dir_id):null;
+  const modBadges=[
+    modOnb?`<span class="badge bp">📋 Onboarding: ${modOnb.nome}</span>`:'',
+    modDir?`<span class="badge bt">🎯 Direcionado: ${modDir.nome}</span>`:''
+  ].filter(Boolean).join('');
+  // PDF viewer
   const pdfBlock=c.pdf_file?`
     <div class="card" style="margin-bottom:12px">
       <div class="ct"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="14" height="14"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>Apresentação em slides</div>
@@ -801,11 +818,12 @@ function abrirCurso(id){
     </div>`:'';
   document.getElementById('curso-det-body').innerHTML=`
     <div class="card" style="margin-bottom:12px">
-      <div style="display:flex;gap:12px;align-items:center;flex-wrap:wrap">
+      <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap">
         <span class="badge bt">📁 ${c.categoria}</span>
         ${c.duracao?`<span class="badge bp">⏱ ${c.duracao}</span>`:''}
         ${prog?.concluido?`<span class="badge bg">✓ Concluído em ${fmtD(prog.data_conclusao)}</span>`:'<span class="badge ba">Não concluído</span>'}
-        ${c.link_externo?`<a href="${c.link_externo}" target="_blank" class="btn" style="padding:4px 10px;font-size:11px">🔗 Abrir material</a>`:''}
+        ${modBadges}
+        ${c.link_externo?`<a href="${c.link_externo}" target="_blank" class="btn" style="padding:4px 10px;font-size:11px">🔗 Material externo</a>`:''}
       </div>
       ${c.descricao?`<div style="font-size:13px;color:var(--tm);margin-top:10px;line-height:1.6">${c.descricao}</div>`:''}
     </div>
@@ -939,7 +957,14 @@ function renderOnb(){
   const turno=document.getElementById('fil-turno-onb')?.value||'';
   const analId=document.getElementById('fil-anal-onb')?.value||'';
   const modId=document.getElementById('fil-mod-onb')?.value||'';
-  const anls=ANALISTAS.filter(a=>(!turno||a.turno.startsWith(turno))&&(!analId||a.id===analId));
+  const podeEditar=CU.role==='admin'||CU.role==='treinamento';
+  // Analista vê APENAS seus próprios dados
+  let anls;
+  if(CU.role==='analista'){
+    anls=ANALISTAS.filter(a=>a.name.toLowerCase()===CU.name.toLowerCase());
+  } else {
+    anls=ANALISTAS.filter(a=>(!turno||a.turno.startsWith(turno))&&(!analId||a.id===analId));
+  }
   const mods=MODS_ONB.filter(m=>!modId||m.id===modId);
   let html='';
   anls.forEach(a=>{
@@ -958,10 +983,10 @@ function renderOnb(){
         <td>${reg.data_conclusao?fmtD(reg.data_conclusao):'—'}</td>
         <td>${notaHtml(reg.nota)}</td>
         <td>${reg.instrutor||'—'}</td>
-        <td>${reg.concluido?'<span class="chk-y" style="color:#27500A;font-weight:700">✓ Concluído</span>':'<span style="color:#E24B4A">✗ Pendente</span>'}</td>
+        <td>${reg.concluido?'<span style="color:#27500A;font-weight:700">✓ Concluído</span>':'<span style="color:#E24B4A">✗ Pendente</span>'}</td>
         <td colspan="2" style="white-space:nowrap">
-          <button class="btn" style="padding:3px 7px;font-size:10px" onclick="event.stopPropagation();openEditReg('onb','${a.id}','${m.id}','${reg.id||''}')">Editar</button>
-          ${reg.id?`<button class="btn btn-d" style="padding:3px 7px;font-size:10px;margin-left:3px" onclick="event.stopPropagation();delReg('onb','${reg.id}')">Remover</button>`:''}
+          ${podeEditar?`<button class="btn" style="padding:3px 7px;font-size:10px" onclick="event.stopPropagation();openEditReg('onb','${a.id}','${m.id}','${reg.id||''}')">Editar</button>`:''}
+          ${podeEditar&&reg.id?`<button class="btn btn-d" style="padding:3px 7px;font-size:10px;margin-left:3px" onclick="event.stopPropagation();delReg('onb','${reg.id}')">Remover</button>`:''}
         </td>
       </tr>`;
     });}
@@ -973,7 +998,14 @@ function renderDir(){
   const turno=document.getElementById('fil-turno-dir')?.value||'';
   const analId=document.getElementById('fil-anal-dir')?.value||'';
   const modId=document.getElementById('fil-mod-dir')?.value||'';
-  const anls=ANALISTAS.filter(a=>(!turno||a.turno.startsWith(turno))&&(!analId||a.id===analId));
+  const podeEditar=CU.role==='admin'||CU.role==='treinamento';
+  // Analista vê APENAS seus próprios dados
+  let anls;
+  if(CU.role==='analista'){
+    anls=ANALISTAS.filter(a=>a.name.toLowerCase()===CU.name.toLowerCase());
+  } else {
+    anls=ANALISTAS.filter(a=>(!turno||a.turno.startsWith(turno))&&(!analId||a.id===analId));
+  }
   const mods=MODS_DIR.filter(m=>!modId||m.id===modId);
   let html='';
   anls.forEach(a=>{
@@ -994,8 +1026,8 @@ function renderDir(){
         <td>${reg.instrutor||'—'}</td>
         <td>${reg.concluido?'<span style="color:#27500A;font-weight:700">✓ Concluído</span>':'<span style="color:#E24B4A">✗ Pendente</span>'}</td>
         <td colspan="2" style="white-space:nowrap">
-          <button class="btn" style="padding:3px 7px;font-size:10px" onclick="event.stopPropagation();openEditReg('dir','${a.id}','${m.id}','${reg.id||''}')">Editar</button>
-          ${reg.id?`<button class="btn btn-d" style="padding:3px 7px;font-size:10px;margin-left:3px" onclick="event.stopPropagation();delReg('dir','${reg.id}')">Remover</button>`:''}
+          ${podeEditar?`<button class="btn" style="padding:3px 7px;font-size:10px" onclick="event.stopPropagation();openEditReg('dir','${a.id}','${m.id}','${reg.id||''}')">Editar</button>`:''}
+          ${podeEditar&&reg.id?`<button class="btn btn-d" style="padding:3px 7px;font-size:10px;margin-left:3px" onclick="event.stopPropagation();delReg('dir','${reg.id}')">Remover</button>`:''}
         </td>
       </tr>`;
     });}
@@ -1178,7 +1210,7 @@ function fbCard(f,showBanner){
 }
 async function marcarLido(id){try{await api('feedbacks','PATCH',{status:'lido'},`?id=eq.${id}`);await loadFeedbacks();renderMeusFb();updBadge();showToast('Marcado como lido!');}catch(e){showToast('Erro.');}}
 async function contestarFb(id){try{await api('feedbacks','PATCH',{status:'contestado'},`?id=eq.${id}`);await loadFeedbacks();renderMeusFb();showToast('Contestado!');}catch(e){showToast('Erro.');}}
-async function delFb(id){if(!confirm('Excluir feedback?'))return;try{await api('feedbacks','DELETE',null,`?id=eq.${id}`);await loadFeedbacks();renderAll();showToast('Excluído!');}catch(e){showToast('Erro.');}}
+async function delFb(id){if(!confirm('Excluir este feedback permanentemente? Esta ação não pode ser desfeita.'))return;try{await api('feedbacks','DELETE',null,`?id=eq.${id}`);await loadFeedbacks();renderAll();showToast('Feedback excluído!');}catch(e){showToast('Erro ao excluir.');}}
 
 function iniciarNovoFb(){FB_EDIT_ID=null;document.getElementById('fb-form-title').textContent='Novo Feedback';document.getElementById('fa').value='';document.getElementById('fd').value='';document.getElementById('ft').value='';document.getElementById('fav').value=CU.name;document.getElementById('fdiag').value='';document.getElementById('fplano').value='';curResp={};buildClForm({});showPage('novofb',document.getElementById('ni-novofb'));}
 function editarFb(id){
@@ -1295,8 +1327,9 @@ function openEditAnalista(id){
   });
 }
 async function delAnalista(id){
-  if(!confirm('Remover analista?'))return;
-  try{await api('analistas','PATCH',{ativo:false},`?id=eq.${id}`);await loadAll();showToast('Removido!');}catch(e){showToast('Erro.');}
+  const a=ANALISTAS.find(x=>x.id===id);
+  if(!confirm(`Remover o analista "${a?.name}"? Os registros de treinamento serão mantidos.`))return;
+  try{await api('analistas','PATCH',{ativo:false},`?id=eq.${id}`);await loadAll();showToast('Analista removido!');}catch(e){showToast('Erro ao remover.');}
 }
 
 // ─── CONFIGURAÇÕES ────────────────────────────────────────────────────
@@ -1423,7 +1456,10 @@ function exportCSV(){
   const el=document.createElement('a');el.href='data:text/csv;charset=utf-8,\uFEFF'+encodeURIComponent(csv);el.download='uxgroup_'+new Date().toISOString().slice(0,10)+'.csv';el.click();showToast('CSV exportado!');
 }
 
-// ─── INIT ────────────────────────────────────────────────────────────
+// Inicializar: mostrar loading e tentar restaurar sessão
+document.getElementById('login-screen').style.display='none';
+document.getElementById('app-screen').style.display='none';
+document.body.insertAdjacentHTML('afterbegin','<div id="loading-screen" style="position:fixed;inset:0;background:linear-gradient(135deg,#F4F4FF,#EEEDFE);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:9999"><div class="spin" style="width:32px;height:32px;border-width:3px;margin-bottom:14px"></div><div style="font-size:13px;color:var(--tm)">Carregando...</div></div>');
 tryRestore();
 </script>
 </body>
