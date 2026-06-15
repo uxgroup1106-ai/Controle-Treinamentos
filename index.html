@@ -339,7 +339,7 @@ tbody tr:hover td{background:#FAFAFE}
         <div class="fr"><label>Analista</label><div style="display:flex;gap:7px"><select id="fa" style="flex:1"><option value="">Selecione...</option></select><button class="btn btn-p" style="padding:6px 10px;font-size:11px;white-space:nowrap" onclick="openModalNovoAnalista()">+ Novo</button></div></div>
         <div class="fr"><label>Data do atendimento</label><input type="date" id="fd"></div>
         <div class="fr"><label>Ticket / Protocolo</label><input type="text" id="ft" placeholder="#12345"></div>
-        <div class="fr"><label>Avaliador</label><input type="text" id="fav" readonly style="background:var(--bg)"></div>
+        <div class="fr"><label>Avaliador</label><input type="text" id="fav" placeholder="Nome do auditor"></div>
       </div>
     </div>
     <div class="card">
@@ -1228,7 +1228,7 @@ function fbCard(f,showBanner){
   const isGA=podeEditarFb;
   return`<div class="fc">${banner}
     <div class="fc-hd">
-      <div><div class="fc-ti">${analName(f.analista_id)} — ${f.ticket}</div><div class="fc-me">${fmtD(f.data)} · ${userName(f.avaliador_id)} · ${stB[f.status]||''}</div></div>
+      <div><div class="fc-ti">${analName(f.analista_id)} — ${f.ticket}</div><div class="fc-me">${fmtD(f.data)} · ${f.avaliador_nome||userName(f.avaliador_id)} · ${stB[f.status]||''}</div></div>
       <div style="text-align:right"><div class="fc-sc" style="color:${scCor(f.nota)}">${f.nota}</div><div style="font-size:11px;color:var(--tm)">${nlbl(f.nota)}</div></div>
     </div>
     <div class="fc-secs">${CL.map(s=>{const sc=calcSecNota(s,f.respostas||{});return`<div class="fc-s"><div class="fc-sn">${s.nome}</div><div class="fc-sv" style="color:${scCor(s.peso?sc/s.peso*100:0)}">${sc}/${s.peso}</div></div>`;}).join('')}</div>
@@ -1254,14 +1254,21 @@ function editarFb(id){
 }
 function cancelarFb(){showPage('todosfb',document.getElementById('ni-todosfb'));}
 function buildClForm(resp){
+  let itemNum=0;
   document.getElementById('cl-form').innerHTML=CL.map(sec=>`
     <div class="cl-sec"><div class="cl-sh"><span>${sec.nome}${sec.tipo?` — <span style="font-weight:400;font-size:10px">${sec.tipo}</span>`:''}</span><span style="font-size:11px;color:var(--tm)">Peso: ${sec.peso}</span></div>
-    ${sec.itens.map(it=>`<div class="cl-it"><span class="cl-nm">${it.nome}</span><span class="cl-pw">${it.peso?'Peso: '+it.peso:'⚠ Crítico'}</span>
-    <div class="cl-btns">
-      <button class="clb${resp[it.id]==='conf'?' conf':''}" onclick="setR('${it.id}','conf',this)">Conforme</button>
-      <button class="clb${resp[it.id]==='nao_conf'?' nconf':''}" onclick="setR('${it.id}','nao_conf',this)">Não Conforme</button>
-      <button class="clb${resp[it.id]==='na'?' na':''}" onclick="setR('${it.id}','na',this)">N/A</button>
-    </div></div>`).join('')}</div>`).join('');
+    ${sec.itens.map(it=>{
+      itemNum++;
+      const ord=itemNum+'º';
+      return`<div class="cl-it">
+        <span style="font-size:10px;font-weight:700;color:var(--purple);min-width:24px">${ord}</span>
+        <span class="cl-nm">${it.nome}</span>
+        <span class="cl-pw">${it.peso?'Peso: '+it.peso:'⚠ Crítico'}</span>
+        <div class="cl-btns">
+          <button class="clb${resp[it.id]==='conf'?' conf':''}" onclick="setR('${it.id}','conf',this)">Conforme</button>
+          <button class="clb${resp[it.id]==='nao_conf'?' nconf':''}" onclick="setR('${it.id}','nao_conf',this)">Não Conforme</button>
+        </div></div>`;
+    }).join('')}</div>`).join('');
   atualizarNota();
 }
 function setR(id,val,btn){curResp[id]=val;btn.closest('.cl-btns').querySelectorAll('.clb').forEach(b=>b.classList.remove('conf','nconf','na'));btn.classList.add(val==='conf'?'conf':val==='nao_conf'?'nconf':'na');atualizarNota();}
@@ -1272,7 +1279,8 @@ async function salvarFb(){
   if(!Object.keys(curResp).length){showToast('Preencha o checklist!');return;}
   const btn=document.getElementById('btn-salvar-fb');btn.textContent='Salvando...';btn.disabled=true;
   const old=FB_EDIT_ID?FEEDBACKS.find(f=>f.id===FB_EDIT_ID):null;
-  const payload={analista_id:aid,avaliador_id:CU.id,data,ticket,nota:calcNota(curResp),respostas:curResp,diagnostico:document.getElementById('fdiag').value,plano:document.getElementById('fplano').value,status:old?.status||'nao_lido',comentarios:old?.comentarios||[]};
+  const avNome=document.getElementById('fav').value.trim()||CU.name;
+  const payload={analista_id:aid,avaliador_id:CU.id,avaliador_nome:avNome,data,ticket,nota:calcNota(curResp),respostas:curResp,diagnostico:document.getElementById('fdiag').value,plano:document.getElementById('fplano').value,status:old?.status||'nao_lido',comentarios:old?.comentarios||[]};
   try{
     if(FB_EDIT_ID){await api('feedbacks','PATCH',payload,`?id=eq.${FB_EDIT_ID}`);}
     else{await api('feedbacks','POST',payload);}
@@ -1288,7 +1296,7 @@ function verFb(id){
   const coms=(f.comentarios||[]).map(c=>{const u=USERS.find(x=>x.id===c.uid);const isAdm=u?.role==='admin'||u?.role==='auditoria';return`<div class="comment"><div class="cav" style="background:${isAdm?'#EEEDFE':'#EAF3DE'};color:${isAdm?'#3C3489':'#27500A'}">${(u?.name||'?').split(' ').slice(0,2).map(x=>x[0]).join('')}</div><div><span class="cau">${u?.name||'?'}</span><span class="cts">${c.ts||''}</span><div class="ctx">${c.txt}</div></div></div>`;}).join('');
   document.getElementById('mod-detail-body').innerHTML=`
     <div style="display:flex;align-items:center;gap:12px;margin-bottom:14px;padding-bottom:12px;border-bottom:1px solid var(--bor)">
-      <div style="flex:1"><div style="font-size:12px;color:var(--tm)">Avaliador: ${userName(f.avaliador_id)} · ${fmtD(f.data)}</div>${f.plano?`<div style="font-size:12px;margin-top:4px"><b>Plano:</b> ${f.plano}</div>`:''}</div>
+      <div style="flex:1"><div style="font-size:12px;color:var(--tm)">Avaliador: ${f.avaliador_nome||userName(f.avaliador_id)} · ${fmtD(f.data)}</div>${f.plano?`<div style="font-size:12px;margin-top:4px"><b>Plano:</b> ${f.plano}</div>`:''}</div>
       <div style="text-align:center"><div style="font-size:36px;font-weight:800;color:${scCor(f.nota)}">${f.nota}</div><div style="font-size:11px;color:var(--tm)">${nlbl(f.nota)}</div></div>
     </div>
     ${f.diagnostico?`<div style="background:var(--bg);border-radius:var(--r);padding:10px 12px;margin-bottom:12px;font-size:12px;line-height:1.6"><b>Diagnóstico:</b> ${f.diagnostico}</div>`:''}
