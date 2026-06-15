@@ -623,7 +623,7 @@ async function loadAll(){
   try{
     [ANALISTAS,MODS_ONB,MODS_DIR,REGS_ONB,REGS_DIR,RECICLAGENS,SESSOES,INSTRUTORES,USERS,CURSOS]=
     await Promise.all([
-      api('analistas','GET',null,'?ativo=eq.true&order=name'),
+      api('analistas','GET',null,'?order=name'),
       api('modulos_onb','GET',null,'?order=ordem'),
       api('modulos_dir','GET',null,'?order=ordem'),
       api('registros_onb','GET',null,'?select=*'),
