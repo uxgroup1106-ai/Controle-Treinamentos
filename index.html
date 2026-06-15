@@ -666,6 +666,10 @@ async function loadFeedbacks(){
 }
 
 function renderAll(){
+  const isAdmin=CU.role==='admin';
+  const isAud=CU.role==='auditoria';
+  const isTrei=CU.role==='treinamento';
+  const isGestor=isAdmin||isAud||isTrei;
   buildSelects();
   renderDash();
   renderOnb();renderDir();renderRec();renderCron();renderCursos();
@@ -1079,8 +1083,18 @@ function openModalAddMod(tipo){
     const nome=document.getElementById('f-nome').value.trim();if(!nome)return;
     const tbl=tipo==='onb'?'modulos_onb':'modulos_dir';
     const ordem=(tipo==='onb'?MODS_ONB:MODS_DIR).length+1;
-    try{await api(tbl,'POST',{nome,ordem});await loadAll();closeMod('mod-form');showToast('Adicionado!');}
-    catch(e){showToast('Erro.');}
+    try{
+      const res=await api(tbl,'POST',{nome,ordem});
+      // Criar registros para todos analistas existentes
+      if(res&&res.length){
+        const novoModId=res[0].id;
+        const regTbl=tipo==='onb'?'registros_onb':'registros_dir';
+        for(const a of ANALISTAS){
+          try{await api(regTbl,'POST',{analista_id:a.id,modulo_id:novoModId,concluido:false});}catch(e){}
+        }
+      }
+      await loadAll();closeMod('mod-form');showToast('Adicionado!');
+    }catch(e){showToast('Erro.');}
   });
 }
 
@@ -1316,11 +1330,34 @@ function renderAnalistas(){
 function openModalNovoAnalista(){
   openForm('Novo analista',`
     <div class="fr"><label>Nome completo</label><input type="text" id="f-nome" placeholder="Nome do analista"></div>
-    <div class="fr"><label>Turno</label><select id="f-turno"><option>06h às 15h</option><option>14h às 23h</option><option>22h às 06h</option></select></div>`,
+    <div class="fr"><label>Turno</label><select id="f-turno">
+      <option>06h às 15h</option>
+      <option>14h às 23h</option>
+      <option>22h às 06h</option>
+    </select></div>`,
   async()=>{
-    const nome=document.getElementById('f-nome').value.trim();if(!nome)return;
-    try{await api('analistas','POST',{name:nome,turno:document.getElementById('f-turno').value,ativo:true});await loadAll();closeMod('mod-form');showToast('Analista adicionado!');}
-    catch(e){showToast('Erro.');}
+    const nome=document.getElementById('f-nome').value.trim();
+    if(!nome){showToast('Preencha o nome!');return;}
+    const btn=document.getElementById('mf-save');
+    btn.textContent='Salvando...';btn.disabled=true;
+    try{
+      // Criar analista
+      const res=await api('analistas','POST',{name:nome,turno:document.getElementById('f-turno').value,ativo:true});
+      if(res&&res.length){
+        const novoId=res[0].id;
+        // Criar registros de onboarding para todos os módulos existentes
+        for(const m of MODS_ONB){
+          try{await api('registros_onb','POST',{analista_id:novoId,modulo_id:m.id,concluido:false});}catch(e){}
+        }
+        // Criar registros direcionados para todos os módulos existentes
+        for(const m of MODS_DIR){
+          try{await api('registros_dir','POST',{analista_id:novoId,modulo_id:m.id,concluido:false});}catch(e){}
+        }
+      }
+      await loadAll();closeMod('mod-form');
+      showToast(`Analista "${nome}" adicionado com sucesso!`);
+    }catch(e){showToast('Erro ao adicionar analista.');console.error(e);}
+    btn.textContent='Salvar';btn.disabled=false;
   });
 }
 function openEditAnalista(id){
