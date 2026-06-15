@@ -586,12 +586,20 @@ async function startSession(){
 
   // Treinamentos — todos veem, Treinamento e Admin editam
   show('ns-trei',true);
-  show('ni-onb',true);show('ni-dir',true);show('ni-rec',isGestor);show('ni-cron',isGestor);show('ni-cursos',true);show('btn-add-mod-onb',podesTrei);show('btn-add-mod-dir',podesTrei);
-  show('btn-add-mod-onb',isAdmin||isTrei);show('btn-add-mod-dir',isAdmin||isTrei);
+  show('ni-onb',true);
+  show('ni-dir',true);
+  show('ni-rec',isGestor);
+  show('ni-cron',isGestor);
+  show('ni-cursos',true);
+  show('btn-add-mod-onb',isAdmin||isTrei);
+  show('btn-add-mod-dir',isAdmin||isTrei);
 
   // Qualidade — todos veem, Auditoria e Admin aplicam
-  show('ns-qa',true);show('ni-meusfb',true);
-  show('ni-todosfb',isGestor);show('ni-novofb',isAdmin||isAud);show('ni-rel',isGestor);
+  show('ns-qa',true);
+  show('ni-meusfb',true);
+  show('ni-todosfb',isGestor);
+  show('ni-novofb',isAdmin||isAud);
+  show('ni-rel',isGestor);
 
   // Administração
   show('ns-adm',isGestor);
