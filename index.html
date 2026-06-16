@@ -321,6 +321,7 @@ tbody tr:hover td{background:#FAFAFE}
   <div class="tb"><div class="pt">Todos os Feedbacks</div><div class="tbr"><button class="btn" onclick="loadFeedbacks();renderTodosFb()"><svg viewBox="0 0 24 24"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-.08-4.43"/></svg>Atualizar</button></div></div>
   <div class="con">
     <div class="fbar">
+      <select onchange="renderTodosFb()" id="fil-todos-turno"><option value="">Todos os turnos</option><option value="06h">06h às 15h — LP</option><option value="14h">14h às 23h — Ana Elpidio</option><option value="22h">22h às 06h — Caroline Moura</option></select>
       <select onchange="renderTodosFb()" id="fil-todos-anal"><option value="">Todos analistas</option></select>
       <select onchange="renderTodosFb()" id="fil-todos-not"><option value="">Todas notas</option><option value="bom">Bom (≥80)</option><option value="reg">Regular (60–79)</option><option value="crit">Crítico (&lt;60)</option></select>
       <select onchange="renderTodosFb()" id="fil-todos-stat"><option value="">Todos status</option><option value="nao_lido">Não lido</option><option value="lido">Lido</option><option value="contestado">Contestado</option></select>
@@ -1212,14 +1213,35 @@ function renderMeusFb(){
   document.getElementById('meusfb-list').innerHTML=fbs.length?fbs.map(f=>fbCard(f,true)).join(''):'<div class="empty">Nenhum feedback.</div>';
 }
 function renderTodosFb(){
+  const turno=document.getElementById('fil-todos-turno')?.value||'';
   const an=document.getElementById('fil-todos-anal')?.value||'';
   const no=document.getElementById('fil-todos-not')?.value||'';
   const st=document.getElementById('fil-todos-stat')?.value||'';
   let fbs=[...FEEDBACKS];
+  // Filtrar por turno — busca o analista e verifica o turno dele
+  if(turno){
+    const analsDoTurno=new Set(ANALISTAS.filter(a=>a.turno.startsWith(turno)).map(a=>a.id));
+    fbs=fbs.filter(f=>analsDoTurno.has(f.analista_id));
+  }
   if(an)fbs=fbs.filter(f=>f.analista_id===an);
-  if(no==='bom')fbs=fbs.filter(f=>f.nota>=80);else if(no==='reg')fbs=fbs.filter(f=>f.nota>=60&&f.nota<80);else if(no==='crit')fbs=fbs.filter(f=>f.nota<60);
+  if(no==='bom')fbs=fbs.filter(f=>f.nota>=80);
+  else if(no==='reg')fbs=fbs.filter(f=>f.nota>=60&&f.nota<80);
+  else if(no==='crit')fbs=fbs.filter(f=>f.nota<60);
   if(st)fbs=fbs.filter(f=>f.status===st);
-  document.getElementById('todosfb-list').innerHTML=fbs.length?fbs.map(f=>fbCard(f,false)).join(''):'<div class="empty">Nenhum feedback.</div>';
+
+  // Banner do turno selecionado
+  const turnos={
+    '06h':{label:'06h às 15h',resp:'LP',color:'#EEEDFE',tc:'#3C3489'},
+    '14h':{label:'14h às 23h',resp:'Ana Elpidio',color:'#E1F5EE',tc:'#085041'},
+    '22h':{label:'22h às 06h',resp:'Caroline Moura',color:'#FAEEDA',tc:'#633806'}
+  };
+  const t=turno?turnos[turno]:null;
+  const banner=t?`<div style="background:${t.color};color:${t.tc};border-radius:var(--r);padding:10px 14px;margin-bottom:12px;display:flex;align-items:center;gap:10px;font-size:12px">
+    <span style="font-size:16px">⏰</span>
+    <div><strong>Turno ${t.label}</strong> — Responsável: <strong>${t.resp}</strong> · ${fbs.length} feedback${fbs.length!==1?'s':''} encontrado${fbs.length!==1?'s':''}</div>
+  </div>`:'';
+
+  document.getElementById('todosfb-list').innerHTML=banner+(fbs.length?fbs.map(f=>fbCard(f,false)).join(''):'<div class="empty">Nenhum feedback encontrado.</div>');
 }
 function fbCard(f,showBanner){
   const stB={nao_lido:'<span class="badge br">Não lido</span>',lido:'<span class="badge bg">Lido</span>',contestado:'<span class="badge ba">Contestado</span>'};
