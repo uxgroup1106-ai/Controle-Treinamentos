@@ -1591,7 +1591,11 @@ async function refreshTodosFb(){
   if(btn){btn.innerHTML='<svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-.08-4.43"/></svg> Atualizar';btn.disabled=false;}
 }
 async function refreshUsers(){await loadUsers();renderUsers();}
-async function refreshAll(){await loadAll();}
+async function refreshAll(){
+  const btn=event?.target;if(btn){btn.textContent='⟳ Carregando...';btn.disabled=true;}
+  await loadAll();
+  if(btn){btn.innerHTML='<svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-.08-4.43"/></svg> Atualizar';btn.disabled=false;}
+}
 document.getElementById('login-screen').style.display='none';
 document.getElementById('app-screen').style.display='none';
 document.body.insertAdjacentHTML('afterbegin','<div id="loading-screen" style="position:fixed;inset:0;background:linear-gradient(135deg,#F4F4FF,#EEEDFE);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:9999"><div class="spin" style="width:32px;height:32px;border-width:3px;margin-bottom:14px"></div><div style="font-size:13px;color:var(--tm)">Carregando...</div></div>');
