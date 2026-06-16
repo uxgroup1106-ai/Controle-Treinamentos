@@ -1578,8 +1578,18 @@ function exportCSV(){
   const el=document.createElement('a');el.href='data:text/csv;charset=utf-8,\uFEFF'+encodeURIComponent(csv);el.download='uxgroup_'+new Date().toISOString().slice(0,10)+'.csv';el.click();showToast('CSV exportado!');
 }
 
-async function refreshMeusFb(){await loadFeedbacks();renderMeusFb();}
-async function refreshTodosFb(){await loadFeedbacks();renderTodosFb();}
+async function refreshMeusFb(){
+  const btn=event?.target;if(btn){btn.textContent='⟳ Carregando...';btn.disabled=true;}
+  await loadAll();
+  renderMeusFb();
+  if(btn){btn.innerHTML='<svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-.08-4.43"/></svg> Atualizar';btn.disabled=false;}
+}
+async function refreshTodosFb(){
+  const btn=event?.target;if(btn){btn.textContent='⟳ Carregando...';btn.disabled=true;}
+  await loadAll();
+  renderTodosFb();
+  if(btn){btn.innerHTML='<svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-.08-4.43"/></svg> Atualizar';btn.disabled=false;}
+}
 async function refreshUsers(){await loadUsers();renderUsers();}
 async function refreshAll(){await loadAll();}
 document.getElementById('login-screen').style.display='none';
