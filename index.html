@@ -310,7 +310,7 @@ tbody tr:hover td{background:#FAFAFE}
   <div class="con">
     <div class="fbar">
       <select onchange="renderMeusFb()" id="fil-fb-turno" style="display:none"><option value="">Todos os turnos</option><option value="06h">06h às 15h — LP</option><option value="14h">14h às 23h — Ana Elpidio</option><option value="22h">22h às 06h — Caroline Moura</option></select>
-      <select onchange="renderMeusFb()" id="fil-fb-mes"><option value="">Todos os meses</option><option value="2025-01">Jan/2025</option><option value="2025-02">Fev/2025</option><option value="2025-03">Mar/2025</option><option value="2025-04">Abr/2025</option><option value="2025-05">Mai/2025</option><option value="2025-06">Jun/2025</option><option value="2025-07">Jul/2025</option><option value="2025-08">Ago/2025</option><option value="2025-09">Set/2025</option><option value="2025-10">Out/2025</option><option value="2025-11">Nov/2025</option><option value="2025-12">Dez/2025</option><option value="2026-01">Jan/2026</option><option value="2026-02">Fev/2026</option><option value="2026-03">Mar/2026</option><option value="2026-04">Abr/2026</option><option value="2026-05">Mai/2026</option><option value="2026-06">Jun/2026</option><option value="2026-07">Jul/2026</option><option value="2026-08">Ago/2026</option><option value="2026-09">Set/2026</option><option value="2026-10">Out/2026</option><option value="2026-11">Nov/2026</option><option value="2026-12">Dez/2026</option></select>
+      <select onchange="renderMeusFb()" id="fil-fb-ano"><option value="">Todos os anos</option><option value="2025">2025</option><option value="2026">2026</option><option value="2027">2027</option></select><select onchange="renderMeusFb()" id="fil-fb-mes"><option value="">Todos os meses</option><option value="01">Janeiro</option><option value="02">Fevereiro</option><option value="03">Março</option><option value="04">Abril</option><option value="05">Maio</option><option value="06">Junho</option><option value="07">Julho</option><option value="08">Agosto</option><option value="09">Setembro</option><option value="10">Outubro</option><option value="11">Novembro</option><option value="12">Dezembro</option></select>
       <select onchange="renderMeusFb()" id="fil-fb-per"><option value="">Todos os períodos</option><option value="7">7 dias</option><option value="30">30 dias</option><option value="90">90 dias</option></select>
       <select onchange="renderMeusFb()" id="fil-fb-not"><option value="">Todas notas</option><option value="bom">Bom (≥80)</option><option value="reg">Regular (60–79)</option><option value="crit">Crítico (&lt;60)</option></select>
     </div>
@@ -324,7 +324,7 @@ tbody tr:hover td{background:#FAFAFE}
   <div class="con">
     <div class="fbar">
       <select onchange="renderTodosFb()" id="fil-todos-turno"><option value="">Todos os turnos</option><option value="06h">06h às 15h — LP</option><option value="14h">14h às 23h — Ana Elpidio</option><option value="22h">22h às 06h — Caroline Moura</option></select>
-      <select onchange="renderTodosFb()" id="fil-todos-mes"><option value="">Todos os meses</option><option value="2025-01">Jan/2025</option><option value="2025-02">Fev/2025</option><option value="2025-03">Mar/2025</option><option value="2025-04">Abr/2025</option><option value="2025-05">Mai/2025</option><option value="2025-06">Jun/2025</option><option value="2025-07">Jul/2025</option><option value="2025-08">Ago/2025</option><option value="2025-09">Set/2025</option><option value="2025-10">Out/2025</option><option value="2025-11">Nov/2025</option><option value="2025-12">Dez/2025</option><option value="2026-01">Jan/2026</option><option value="2026-02">Fev/2026</option><option value="2026-03">Mar/2026</option><option value="2026-04">Abr/2026</option><option value="2026-05">Mai/2026</option><option value="2026-06">Jun/2026</option><option value="2026-07">Jul/2026</option><option value="2026-08">Ago/2026</option><option value="2026-09">Set/2026</option><option value="2026-10">Out/2026</option><option value="2026-11">Nov/2026</option><option value="2026-12">Dez/2026</option></select>
+      <select onchange="renderTodosFb()" id="fil-todos-ano"><option value="">Todos os anos</option><option value="2025">2025</option><option value="2026">2026</option><option value="2027">2027</option></select><select onchange="renderTodosFb()" id="fil-todos-mes"><option value="">Todos os meses</option><option value="01">Janeiro</option><option value="02">Fevereiro</option><option value="03">Março</option><option value="04">Abril</option><option value="05">Maio</option><option value="06">Junho</option><option value="07">Julho</option><option value="08">Agosto</option><option value="09">Setembro</option><option value="10">Outubro</option><option value="11">Novembro</option><option value="12">Dezembro</option></select>
       <select onchange="renderTodosFb()" id="fil-todos-anal"><option value="">Todos analistas</option></select>
       <select onchange="renderTodosFb()" id="fil-todos-not"><option value="">Todas notas</option><option value="bom">Bom (≥80)</option><option value="reg">Regular (60–79)</option><option value="crit">Crítico (&lt;60)</option></select>
       <select onchange="renderTodosFb()" id="fil-todos-stat"><option value="">Todos status</option><option value="nao_lido">Não lido</option><option value="lido">Lido</option><option value="contestado">Contestado</option></select>
@@ -1208,12 +1208,15 @@ async function delSessao(id){
 // ─── FEEDBACKS ───────────────────────────────────────────────────────
 function renderMeusFb(){
   const turno=document.getElementById('fil-fb-turno')?.value||'';
+  const ano=document.getElementById('fil-fb-ano')?.value||'';
   const mes=document.getElementById('fil-fb-mes')?.value||'';
   const per=document.getElementById('fil-fb-per')?.value||'';
   const not=document.getElementById('fil-fb-not')?.value||'';
   let fbs=[...FEEDBACKS];
   if(turno){const analsDoTurno=new Set(ANALISTAS.filter(a=>a.turno.startsWith(turno)).map(a=>a.id));fbs=fbs.filter(f=>analsDoTurno.has(f.analista_id));}
-  if(mes)fbs=fbs.filter(f=>(f.data||'').startsWith(mes));
+  if(ano&&mes)fbs=fbs.filter(f=>(f.data||'').startsWith(`${ano}-${mes}`));
+  else if(ano)fbs=fbs.filter(f=>(f.data||'').startsWith(ano));
+  else if(mes)fbs=fbs.filter(f=>(f.data||'').slice(5,7)===mes);
   if(per){const d=Date.now()-parseInt(per)*86400000;fbs=fbs.filter(f=>new Date(f.created_at).getTime()>=d);}
   if(not==='bom')fbs=fbs.filter(f=>f.nota>=80);
   else if(not==='reg')fbs=fbs.filter(f=>f.nota>=60&&f.nota<80);
@@ -1225,13 +1228,16 @@ function renderMeusFb(){
 }
 function renderTodosFb(){
   const turno=document.getElementById('fil-todos-turno')?.value||'';
+  const ano=document.getElementById('fil-todos-ano')?.value||'';
   const mes=document.getElementById('fil-todos-mes')?.value||'';
   const an=document.getElementById('fil-todos-anal')?.value||'';
   const no=document.getElementById('fil-todos-not')?.value||'';
   const st=document.getElementById('fil-todos-stat')?.value||'';
   let fbs=[...FEEDBACKS];
   if(turno){const analsDoTurno=new Set(ANALISTAS.filter(a=>a.turno.startsWith(turno)).map(a=>a.id));fbs=fbs.filter(f=>analsDoTurno.has(f.analista_id));}
-  if(mes)fbs=fbs.filter(f=>(f.data||'').startsWith(mes));
+  if(ano&&mes)fbs=fbs.filter(f=>(f.data||'').startsWith(`${ano}-${mes}`));
+  else if(ano)fbs=fbs.filter(f=>(f.data||'').startsWith(ano));
+  else if(mes)fbs=fbs.filter(f=>(f.data||'').slice(5,7)===mes);
   if(an)fbs=fbs.filter(f=>f.analista_id===an);
   if(no==='bom')fbs=fbs.filter(f=>f.nota>=80);
   else if(no==='reg')fbs=fbs.filter(f=>f.nota>=60&&f.nota<80);
