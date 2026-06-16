@@ -246,7 +246,7 @@ tbody tr:hover td{background:#FAFAFE}
     <div class="tbr">
       <button class="btn" style="font-size:11px" onclick="expandAll('onb')">▾ Expandir</button>
       <button class="btn" style="font-size:11px" onclick="collapseAll('onb')">▸ Recolher</button>
-      <button class="btn btn-p" id="btn-add-mod-onb" onclick="openModalAddMod('onb')"><svg viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>Novo módulo</button>
+      <button class="btn" onclick="refreshAll()"><svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-.08-4.43"/></svg>Atualizar</button><button class="btn btn-p" id="btn-add-mod-onb" onclick="openModalAddMod('onb')"><svg viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>Novo módulo</button>
     </div>
   </div>
   <div class="con">
@@ -265,7 +265,7 @@ tbody tr:hover td{background:#FAFAFE}
     <div class="tbr">
       <button class="btn" style="font-size:11px" onclick="expandAll('dir')">▾ Expandir</button>
       <button class="btn" style="font-size:11px" onclick="collapseAll('dir')">▸ Recolher</button>
-      <button class="btn btn-p" id="btn-add-mod-dir" onclick="openModalAddMod('dir')"><svg viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>Novo treinamento</button>
+      <button class="btn" onclick="refreshAll()"><svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-.08-4.43"/></svg>Atualizar</button><button class="btn btn-p" id="btn-add-mod-dir" onclick="openModalAddMod('dir')"><svg viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>Novo treinamento</button>
     </div>
   </div>
   <div class="con">
@@ -280,7 +280,7 @@ tbody tr:hover td{background:#FAFAFE}
 
 <!-- RECICLAGEM -->
 <div id="p-reciclagem" class="page">
-  <div class="tb"><div class="pt">Reciclagem</div><div class="tbr"><button class="btn btn-p" onclick="openModalRec()"><svg viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>Nova reciclagem</button></div></div>
+  <div class="tb"><div class="pt">Reciclagem</div><div class="tbr"><button class="btn" onclick="refreshAll()"><svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-.08-4.43"/></svg>Atualizar</button><button class="btn btn-p" onclick="openModalRec()"><svg viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>Nova reciclagem</button></div></div>
   <div class="con">
     <div class="fbar">
       <input type="text" id="fil-rec-nome" placeholder="Buscar por nome..." oninput="renderRec()">
@@ -293,7 +293,7 @@ tbody tr:hover td{background:#FAFAFE}
 
 <!-- CRONOGRAMA -->
 <div id="p-cronograma" class="page">
-  <div class="tb"><div class="pt">Cronograma</div><div class="tbr"><button class="btn btn-p" onclick="openModalSessao()"><svg viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>Nova sessão</button></div></div>
+  <div class="tb"><div class="pt">Cronograma</div><div class="tbr"><button class="btn" onclick="refreshAll()"><svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-.08-4.43"/></svg>Atualizar</button><button class="btn btn-p" onclick="openModalSessao()"><svg viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>Nova sessão</button></div></div>
   <div class="con">
     <div class="fbar">
       <span style="font-size:12px;color:var(--tm)">De:</span><input type="date" id="fil-cron-ini" onchange="renderCron()">
@@ -369,7 +369,7 @@ tbody tr:hover td{background:#FAFAFE}
 
 <!-- RELATÓRIOS -->
 <div id="p-relatorios" class="page">
-  <div class="tb"><div class="pt">Relatórios de Qualidade</div></div>
+  <div class="tb"><div class="pt">Relatórios de Qualidade</div><div class="tbr"><button class="btn" onclick="refreshAll()"><svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-.08-4.43"/></svg>Atualizar</button></div></div>
   <div class="con">
     <div class="fbar">
       <select onchange="renderRel()" id="r-anal"><option value="">Todos analistas</option></select>
@@ -386,7 +386,7 @@ tbody tr:hover td{background:#FAFAFE}
 
 <!-- ANALISTAS -->
 <div id="p-analistas" class="page">
-  <div class="tb"><div class="pt">Analistas</div><div class="tbr"><button class="btn btn-p" onclick="openModalNovoAnalista()"><svg viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>Novo analista</button></div></div>
+  <div class="tb"><div class="pt">Analistas</div><div class="tbr"><button class="btn" onclick="refreshAll()"><svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-.08-4.43"/></svg>Atualizar</button><button class="btn btn-p" onclick="openModalNovoAnalista()"><svg viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>Novo analista</button></div></div>
   <div class="con"><div class="tw"><table><thead><tr><th>Nome</th><th>Turno</th><th>Onboarding</th><th>Direcionados</th><th>Ações</th></tr></thead><tbody id="analistas-tbody"></tbody></table></div></div>
 </div>
 
@@ -394,7 +394,7 @@ tbody tr:hover td{background:#FAFAFE}
 <div id="p-cursos" class="page">
   <div class="tb"><div class="pt" id="cursos-title">Cursos</div>
     <div class="tbr" id="cursos-tbr">
-      <button class="btn btn-p" id="btn-novo-curso" onclick="openModalCurso()" style="display:none"><svg viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>Novo curso</button>
+      <button class="btn" onclick="refreshAll()"><svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-.08-4.43"/></svg>Atualizar</button><button class="btn btn-p" id="btn-novo-curso" onclick="openModalCurso()" style="display:none"><svg viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>Novo curso</button>
     </div>
   </div>
   <div class="con" id="cursos-con"></div>
@@ -742,7 +742,7 @@ function renderDash(){
   const fbTot=FEEDBACKS.length,fbMed=fbTot?Math.round(FEEDBACKS.reduce((a,f)=>a+f.nota,0)/fbTot):0;
   const cursosDisp=CURSOS.length;
   document.getElementById('d-stats').innerHTML=`
-    <div class="stat"><div class="stat-icon" style="background:#EAF3DE">👥</div><div class="stat-body"><div class="stat-val">${tot}</div><div class="stat-lbl">Analistas</div></div></div>
+    ${CU.role!=='analista'?`<div class="stat"><div class="stat-icon" style="background:#EAF3DE">👥</div><div class="stat-body"><div class="stat-val">${tot}</div><div class="stat-lbl">Analistas</div></div></div>`:''}
     <div class="stat"><div class="stat-icon" style="background:#EEEDFE">📚</div><div class="stat-body"><div class="stat-val" style="color:${scCor(onbPct)}">${onbPct}%</div><div class="stat-lbl">Onboarding</div></div></div>
     <div class="stat"><div class="stat-icon" style="background:#E1F5EE">🎯</div><div class="stat-body"><div class="stat-val" style="color:${scCor(dirPct)}">${dirPct}%</div><div class="stat-lbl">Direcionados</div></div></div>
     <div class="stat"><div class="stat-icon" style="background:#FAEEDA">📋</div><div class="stat-body"><div class="stat-val" style="color:${scCor(fbMed)}">${fbMed||'—'}</div><div class="stat-lbl">Média QA</div></div></div>
