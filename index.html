@@ -219,7 +219,7 @@ tbody tr:hover td{background:#FAFAFE}
 
 <!-- DASHBOARD -->
 <div id="p-dashboard" class="page active">
-  <div class="tb"><div class="pt">Dashboard</div><div class="tbr"><button class="btn" onclick="loadAll()"><svg viewBox="0 0 24 24"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-.08-4.43"/></svg>Atualizar</button><button class="btn" onclick="exportCSV()"><svg viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>Exportar</button></div></div>
+  <div class="tb"><div class="pt">Dashboard</div><div class="tbr"><button class="btn" onclick="refreshAll()"><svg viewBox="0 0 24 24"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-.08-4.43"/></svg>Atualizar</button><button class="btn" onclick="exportCSV()"><svg viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>Exportar</button></div></div>
   <div class="con">
     <div class="dash-hero">
       <div class="dash-hero-text">
@@ -306,7 +306,7 @@ tbody tr:hover td{background:#FAFAFE}
 
 <!-- MEUS FEEDBACKS -->
 <div id="p-meusfb" class="page">
-  <div class="tb"><div class="pt">Meus Feedbacks</div><div class="tbr"><button class="btn" onclick="loadFeedbacks().then(()=>renderMeusFb())"><svg viewBox="0 0 24 24"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-.08-4.43"/></svg>Atualizar</button></div></div>
+  <div class="tb"><div class="pt">Meus Feedbacks</div><div class="tbr"><button class="btn" onclick="refreshMeusFb()"><svg viewBox="0 0 24 24"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-.08-4.43"/></svg>Atualizar</button></div></div>
   <div class="con">
     <div class="fbar">
       <select onchange="renderMeusFb()" id="fil-fb-turno" style="display:none"><option value="">Todos os turnos</option><option value="06h">06h às 15h — LP</option><option value="14h">14h às 23h — Ana Elpidio</option><option value="22h">22h às 06h — Caroline Moura</option></select>
@@ -321,7 +321,7 @@ tbody tr:hover td{background:#FAFAFE}
 
 <!-- TODOS FEEDBACKS -->
 <div id="p-todosfb" class="page">
-  <div class="tb"><div class="pt">Todos os Feedbacks</div><div class="tbr"><button class="btn" onclick="loadFeedbacks().then(()=>renderTodosFb())"><svg viewBox="0 0 24 24"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-.08-4.43"/></svg>Atualizar</button></div></div>
+  <div class="tb"><div class="pt">Todos os Feedbacks</div><div class="tbr"><button class="btn" onclick="refreshTodosFb()"><svg viewBox="0 0 24 24"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-.08-4.43"/></svg>Atualizar</button></div></div>
   <div class="con">
     <div class="fbar">
       <select onchange="renderTodosFb()" id="fil-todos-turno"><option value="">Todos os turnos</option><option value="06h">06h às 15h — LP</option><option value="14h">14h às 23h — Ana Elpidio</option><option value="22h">22h às 06h — Caroline Moura</option></select>
@@ -452,7 +452,7 @@ tbody tr:hover td{background:#FAFAFE}
 <!-- USUÁRIOS -->
 <div id="p-usuarios" class="page">
   <div class="tb"><div class="pt">Usuários do sistema</div><div class="tbr">
-    <button class="btn" onclick="loadUsers().then(()=>renderUsers())"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="13" height="13"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-.08-4.43"/></svg>Atualizar</button>
+    <button class="btn" onclick="refreshUsers()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="13" height="13"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-.08-4.43"/></svg>Atualizar</button>
     <button class="btn btn-p" onclick="openModalUser()"><svg viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>Novo usuário</button>
   </div></div>
   <div class="con"><div class="tw"><table><thead><tr><th>Nome</th><th>Usuário</th><th>Perfil</th><th>Status</th><th>Último login</th><th>Senha</th><th>Ações</th></tr></thead><tbody id="users-tbody"></tbody></table></div></div>
@@ -1578,7 +1578,10 @@ function exportCSV(){
   const el=document.createElement('a');el.href='data:text/csv;charset=utf-8,\uFEFF'+encodeURIComponent(csv);el.download='uxgroup_'+new Date().toISOString().slice(0,10)+'.csv';el.click();showToast('CSV exportado!');
 }
 
-// Inicializar: mostrar loading e tentar restaurar sessão
+async function refreshMeusFb(){await loadFeedbacks();renderMeusFb();}
+async function refreshTodosFb(){await loadFeedbacks();renderTodosFb();}
+async function refreshUsers(){await loadUsers();renderUsers();}
+async function refreshAll(){await loadAll();}
 document.getElementById('login-screen').style.display='none';
 document.getElementById('app-screen').style.display='none';
 document.body.insertAdjacentHTML('afterbegin','<div id="loading-screen" style="position:fixed;inset:0;background:linear-gradient(135deg,#F4F4FF,#EEEDFE);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:9999"><div class="spin" style="width:32px;height:32px;border-width:3px;margin-bottom:14px"></div><div style="font-size:13px;color:var(--tm)">Carregando...</div></div>');
