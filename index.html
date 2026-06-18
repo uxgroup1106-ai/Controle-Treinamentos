@@ -1216,8 +1216,14 @@ function renderMeusFb(){
   const per=document.getElementById('fil-fb-per')?.value||'';
   const not=document.getElementById('fil-fb-not')?.value||'';
   let fbs=[...FEEDBACKS];
-  if(turno){const analsDoTurno=new Set(ANALISTAS.filter(a=>a.turno.startsWith(turno)).map(a=>a.id));fbs=fbs.filter(f=>analsDoTurno.has(f.analista_id));}
-  if(anal)fbs=fbs.filter(f=>f.analista_id===anal);
+  // Se for analista, filtra automaticamente pelos próprios feedbacks
+  if(CU.role==='analista'){
+    const analMatch=ANALISTAS.find(a=>a.name.toLowerCase()===CU.name.toLowerCase());
+    if(analMatch)fbs=fbs.filter(f=>f.analista_id===analMatch.id);
+  } else {
+    if(turno){const analsDoTurno=new Set(ANALISTAS.filter(a=>a.turno.startsWith(turno)).map(a=>a.id));fbs=fbs.filter(f=>analsDoTurno.has(f.analista_id));}
+    if(anal)fbs=fbs.filter(f=>f.analista_id===anal);
+  }
   if(ano&&mes)fbs=fbs.filter(f=>(f.data||'').startsWith(`${ano}-${mes}`));
   else if(ano)fbs=fbs.filter(f=>(f.data||'').startsWith(ano));
   else if(mes)fbs=fbs.filter(f=>(f.data||'').slice(5,7)===mes);
